@@ -594,3 +594,63 @@
     -fx-background-color: #3a3050;
     -fx-background-radius: 2;
 }
+
+/* ── Botones del menu de batalla en formato BARRA HORIZONTAL ─────── */
+.btn-batalla-barra {
+    -fx-background-color: linear-gradient(to right, #1c1c2c, #14141f);
+    -fx-border-color: #c8a84b;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f0d070;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 4 14 4 18;
+}
+
+.btn-batalla-barra:hover {
+    -fx-background-color: linear-gradient(to right, #2a2440, #1a1830);
+    -fx-border-color: #f0d070;
+    -fx-effect: dropshadow(gaussian, rgba(240,208,112,0.5), 10, 0, 2, 0);
+    -fx-translate-x: 2;
+}
+
+.btn-batalla-barra:pressed {
+    -fx-background-color: #1a1528;
+    -fx-translate-x: 0;
+}
+
+.btn-batalla-barra:disabled {
+    -fx-opacity: 0.45;
+    -fx-cursor: default;
+}
+
+.btn-batalla-barra-huir {
+    -fx-background-color: linear-gradient(to right, #2a1a1c, #1a1014);
+    -fx-border-color: #e05555;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ff8a8a;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 4 14 4 18;
+}
+
+.btn-batalla-barra-huir:hover {
+    -fx-background-color: linear-gradient(to right, #3a1e22, #221216);
+    -fx-border-color: #ff8a8a;
+    -fx-effect: dropshadow(gaussian, rgba(224,85,85,0.5), 10, 0, 2, 0);
+    -fx-translate-x: 2;
+}
+
+.btn-batalla-barra-huir:pressed {
+    -fx-background-color: #1a0e10;
+    -fx-translate-x: 0;
+}

@@ -44,7 +44,7 @@ public class MazmorraController implements Initializable {
     @FXML private Label       lblPrompt;
     @FXML private TextArea    txtLog;
     @FXML private Label       lblResultado;
-    @FXML private GridPane    menuBatalla;
+    @FXML private VBox        menuBatalla;
     @FXML private Button      btnAtacar;
     @FXML private Button      btnObjetos;
     @FXML private Button      btnHabilidad;

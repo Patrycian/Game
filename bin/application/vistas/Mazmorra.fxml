@@ -106,43 +106,34 @@
 
             <Rectangle styleClass="separador-arena" width="2" height="180"/>
 
-            <GridPane fx:id="menuBatalla" hgap="10" vgap="10" alignment="CENTER">
-                <padding><Insets top="14" right="20" bottom="14" left="14"/></padding>
-
-                <columnConstraints>
-                    <ColumnConstraints prefWidth="155" minWidth="140"/>
-                    <ColumnConstraints prefWidth="155" minWidth="140"/>
-                </columnConstraints>
-                <rowConstraints>
-                    <RowConstraints prefHeight="62" minHeight="56"/>
-                    <RowConstraints prefHeight="62" minHeight="56"/>
-                </rowConstraints>
+            <VBox fx:id="menuBatalla" spacing="6" alignment="CENTER" prefWidth="240" minWidth="220">
+                <padding><Insets top="10" right="16" bottom="10" left="14"/></padding>
 
                 <Button fx:id="btnAtacar"
-                        styleClass="btn-batalla-pokemon"
+                        styleClass="btn-batalla-barra"
                         text="ATAQUE"
                         onAction="#handleAtacar"
-                        GridPane.rowIndex="0" GridPane.columnIndex="0"
-                        maxWidth="Infinity" maxHeight="Infinity"/>
+                        maxWidth="Infinity" prefHeight="36" minHeight="32"
+                        VBox.vgrow="ALWAYS"/>
                 <Button fx:id="btnObjetos"
-                        styleClass="btn-batalla-pokemon"
+                        styleClass="btn-batalla-barra"
                         text="OBJETOS"
                         onAction="#handleObjetos"
-                        GridPane.rowIndex="0" GridPane.columnIndex="1"
-                        maxWidth="Infinity" maxHeight="Infinity"/>
+                        maxWidth="Infinity" prefHeight="36" minHeight="32"
+                        VBox.vgrow="ALWAYS"/>
                 <Button fx:id="btnHabilidad"
-                        styleClass="btn-batalla-pokemon"
+                        styleClass="btn-batalla-barra"
                         text="HABILIDAD"
                         onAction="#handleHabilidad"
-                        GridPane.rowIndex="1" GridPane.columnIndex="0"
-                        maxWidth="Infinity" maxHeight="Infinity"/>
+                        maxWidth="Infinity" prefHeight="36" minHeight="32"
+                        VBox.vgrow="ALWAYS"/>
                 <Button fx:id="btnHuir"
-                        styleClass="btn-batalla-pokemon-huir"
+                        styleClass="btn-batalla-barra-huir"
                         text="HUIDA"
                         onAction="#handleHuir"
-                        GridPane.rowIndex="1" GridPane.columnIndex="1"
-                        maxWidth="Infinity" maxHeight="Infinity"/>
-            </GridPane>
+                        maxWidth="Infinity" prefHeight="36" minHeight="32"
+                        VBox.vgrow="ALWAYS"/>
+            </VBox>
         </HBox>
 
     </VBox>
