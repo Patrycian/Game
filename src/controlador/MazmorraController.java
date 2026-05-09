@@ -8,14 +8,19 @@ import modelo.*;
 import motor.MotorCombate;
 import motor.MotorCombate.ResultadoCombate;
 
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.List;
@@ -216,6 +221,18 @@ public class MazmorraController implements Initializable {
             case HABILIDAD: {
                 List<String> mensajes = motor.ejecutarTurnoHeroe(accion == AccionHeroe.HABILIDAD);
                 mensajes.forEach(this::agregarLog);
+
+                // El enemigo siempre recibe el primer golpe (a menos que la habilidad
+                // del clerigo cure al heroe, en cuyo caso no hay golpe al enemigo)
+                if (!(sesion.getHeroe() instanceof Clerigo) || accion != AccionHeroe.HABILIDAD) {
+                    animarGolpe(lblIconoEnemigo);
+                }
+                // Si el enemigo sobrevivio, contraataco -> el heroe recibe el golpe
+                if (motor.getEnemigo().estaVivo()) {
+                    PauseTransition espera = new PauseTransition(Duration.millis(350));
+                    espera.setOnFinished(ev -> animarGolpe(lblIconoHeroe));
+                    espera.play();
+                }
                 break;
             }
             case POCION: {
@@ -234,6 +251,7 @@ public class MazmorraController implements Initializable {
                 if (enemigo.estaVivo()) {
                     String ataqueEnemigo = enemigo.realizarAtaque(h);
                     agregarLog(ataqueEnemigo);
+                    animarGolpe(lblIconoHeroe);  // el heroe recibe el contraataque
                     if (!h.estaVivo()) {
                         // Forzamos derrota a través del motor para coherencia de estado
                         // (el motor ya se actualizará en la siguiente acción si llegase)
@@ -428,4 +446,32 @@ public class MazmorraController implements Initializable {
     private void agregarLog(String mensaje) {
         txtLog.appendText(mensaje + "\n");
     }
+
+    /**
+     * Aplica un efecto de "temblor" horizontal al nodo, simulando que recibe un ataque.
+     * El nodo se desplaza varias veces a izquierda/derecha y vuelve a su posicion original.
+     */
+    private void animarGolpe(Node objetivo) {
+        if (objetivo == null) return;
+
+        int    desplazamiento = 8;     // pixeles a cada lado
+        double duracionPaso   = 50;    // ms por sacudida
+
+        TranslateTransition izq1 = new TranslateTransition(Duration.millis(duracionPaso), objetivo);
+        izq1.setByX(-desplazamiento);
+        TranslateTransition der1 = new TranslateTransition(Duration.millis(duracionPaso), objetivo);
+        der1.setByX(desplazamiento * 2);
+        TranslateTransition izq2 = new TranslateTransition(Duration.millis(duracionPaso), objetivo);
+        izq2.setByX(-desplazamiento * 2);
+        TranslateTransition der2 = new TranslateTransition(Duration.millis(duracionPaso), objetivo);
+        der2.setByX(desplazamiento * 2);
+        TranslateTransition centro = new TranslateTransition(Duration.millis(duracionPaso), objetivo);
+        centro.setByX(-desplazamiento);
+
+        SequentialTransition secuencia =
+                new SequentialTransition(izq1, der1, izq2, der2, centro);
+        secuencia.play();
+    }
 }
+    
+
