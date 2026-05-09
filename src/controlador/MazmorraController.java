@@ -21,6 +21,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 
 import java.net.URL;
 import java.util.List;
@@ -60,6 +62,7 @@ public class MazmorraController implements Initializable {
     private GameSession  sesion;
     private MotorCombate motor;
     private boolean      combateTerminado = false;
+    private MediaPlayer mediaPlayer;
 
     // ── Inventario simple del combate ────────────────────────────────────────
     /** Pociones disponibles en el combate actual (se reinicia cada fase). */
@@ -135,6 +138,8 @@ public class MazmorraController implements Initializable {
         btnAtacar.setDisable(false);
         btnObjetos.setDisable(false);
         btnHuir.setDisable(false);
+        
+        iniciarMusica(sesion.getFaseActual() == 4);
     }
 
     // ── Handlers ──────────────────────────────────────────────────────────────
@@ -383,6 +388,7 @@ public class MazmorraController implements Initializable {
     // ── Navegación ────────────────────────────────────────────────────────────
 
     private void navegarAResultado(boolean victoria) {
+    	detenerMusica();
         try {
             // Marcar partida como completada/derrota
             if (sesion.getPartida() != null) {
@@ -407,6 +413,7 @@ public class MazmorraController implements Initializable {
     }
 
     private void navegarAMenu() {
+    	detenerMusica();
         try {
             Parent root = FXMLLoader.load(
                 getClass().getResource("/application/vistas/MenuPrincipal.fxml"));
@@ -472,6 +479,31 @@ public class MazmorraController implements Initializable {
                 new SequentialTransition(izq1, der1, izq2, der2, centro);
         secuencia.play();
     }
-}
     
+    private void iniciarMusica(boolean esFaseFinal) {
+        // Detener cualquier música anterior (importante al cambiar de fase)
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+        }
+        try {
+            String archivo = esFaseFinal ? "/recursos/audio/finalBoss.mp3"
+                                         : "/recursos/audio/Battle.mp3";
+            URL recurso = getClass().getResource(archivo);
+            if (recurso == null) return;
+            mediaPlayer = new MediaPlayer(new Media(recurso.toExternalForm()));
+            mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+            mediaPlayer.setVolume(0.6);
+            mediaPlayer.play();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void detenerMusica() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+        }
+    }
+}
+ 
 
