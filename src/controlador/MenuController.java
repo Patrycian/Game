@@ -13,6 +13,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.Random;
@@ -24,17 +27,20 @@ public class MenuController implements Initializable {
     @FXML private Button btnNuevaPartida;
     @FXML private Button btnCargarPartida;
     @FXML private Button btnRanking;
+    private MediaPlayer mediaPlayer;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         generarParticulas();
         animarEntrada();
+        iniciarMusica(); 
     }
 
     // ── Handlers ─────────────────────────────────────────────────────────────
 
     @FXML
     private void handleNuevaPartida() {
+    	detenerMusica();
         try {
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/application/vistas/Nombre.fxml")
@@ -49,6 +55,7 @@ public class MenuController implements Initializable {
 
     @FXML
     private void handleCargarPartida() {
+    	detenerMusica();
         try {
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/application/vistas/CargarPartida.fxml")
@@ -63,6 +70,7 @@ public class MenuController implements Initializable {
 
     @FXML
     private void handleRanking() {
+    	detenerMusica();
         try {
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/application/vistas/Ranking.fxml")
@@ -77,6 +85,7 @@ public class MenuController implements Initializable {
 
     @FXML
     private void handleSalir() {
+    	detenerMusica();
         Platform.exit();
     }
 
@@ -131,5 +140,28 @@ public class MenuController implements Initializable {
             slide.setToY(0);
             new ParallelTransition(fade, slide).play();
         });
+    }
+    
+    private void iniciarMusica() {
+        try {
+            URL recurso = getClass().getResource("/recursos/audio/Menu.mp3");
+            if (recurso == null) {
+                System.err.println("No se encontró el archivo de audio Menu.mp3");
+                return;
+            }
+            Media media = new Media(recurso.toExternalForm());
+            mediaPlayer = new MediaPlayer(media);
+            mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE); // se repite en bucle
+            mediaPlayer.setVolume(0.5);                        // volumen al 50%
+            mediaPlayer.play();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void detenerMusica() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+        }
     }
 }
