@@ -12,91 +12,137 @@
 
     <VBox spacing="0">
 
-        <!-- ── Cabecera de fase ── -->
         <HBox styleClass="hud-barra" alignment="CENTER" prefHeight="42">
             <padding><Insets top="0" right="20" bottom="0" left="20"/></padding>
             <Label fx:id="lblFase" styleClass="hud-valor"
-                   text="⚔  FASE 1 — MAZMORRA"/>
+                   text="FASE 1 - MAZMORRA"/>
         </HBox>
 
-        <!-- ── Arena de combate ── -->
-        <HBox spacing="0" VBox.vgrow="ALWAYS">
+        <StackPane styleClass="escena-batalla" VBox.vgrow="ALWAYS" prefHeight="360">
 
-            <!-- Panel héroe -->
-            <VBox styleClass="panel-combatiente" alignment="CENTER" spacing="10"
-                  prefWidth="230" minWidth="230">
-                <padding><Insets top="20" right="16" bottom="20" left="16"/></padding>
-                <Label fx:id="lblIconoHeroe" styleClass="icono-combatiente" text="🧙"/>
-                <Label fx:id="lblNombreHeroe" styleClass="card-nombre"
-                       wrapText="true" textAlignment="CENTER" text="Héroe"/>
-                <ProgressBar fx:id="barraVidaHeroe" prefWidth="180" prefHeight="14"
-                             progress="1.0" styleClass="barra-vida"/>
-                <Label fx:id="lblHpHeroe" styleClass="hud-etiqueta" text="— / — HP"/>
+            <VBox spacing="0">
+
+                <HBox alignment="CENTER" spacing="10" prefHeight="170">
+                    <padding><Insets top="20" right="40" bottom="0" left="40"/></padding>
+
+                    <VBox styleClass="caja-info-pokemon" spacing="6" prefWidth="290" maxWidth="290">
+                        <padding><Insets top="10" right="14" bottom="10" left="14"/></padding>
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label fx:id="lblNombreEnemigo" styleClass="info-pokemon-nombre"
+                                   text="Enemigo"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label styleClass="info-pokemon-hp-label" text="HP"/>
+                            <ProgressBar fx:id="barraVidaEnemigo" prefWidth="200" prefHeight="10"
+                                         progress="1.0" styleClass="barra-vida-pokemon"/>
+                        </HBox>
+                    </VBox>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <StackPane prefWidth="160" prefHeight="160" styleClass="plataforma-enemigo">
+                        <Label fx:id="lblIconoEnemigo" styleClass="sprite-combatiente" text="ENEMY"/>
+                    </StackPane>
+                </HBox>
+
+                <HBox alignment="CENTER" spacing="10" prefHeight="170">
+                    <padding><Insets top="0" right="40" bottom="20" left="40"/></padding>
+
+                    <StackPane prefWidth="160" prefHeight="160" styleClass="plataforma-heroe">
+                        <Label fx:id="lblIconoHeroe" styleClass="sprite-combatiente" text="HERO"/>
+                    </StackPane>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <VBox styleClass="caja-info-pokemon" spacing="6" prefWidth="320" maxWidth="320">
+                        <padding><Insets top="10" right="14" bottom="10" left="14"/></padding>
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label fx:id="lblNombreHeroe" styleClass="info-pokemon-nombre"
+                                   text="Heroe"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label styleClass="info-pokemon-hp-label" text="HP"/>
+                            <ProgressBar fx:id="barraVidaHeroe" prefWidth="200" prefHeight="10"
+                                         progress="1.0" styleClass="barra-vida-pokemon"/>
+                        </HBox>
+                        <HBox alignment="CENTER_RIGHT">
+                            <Label fx:id="lblHpHeroe" styleClass="info-pokemon-hp-num"
+                                   text="-/- HP"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
             </VBox>
 
-            <!-- Separador vertical -->
-            <Rectangle styleClass="separador-arena" width="1.5" height="400"/>
+            <Label fx:id="lblResultado" styleClass="overlay-titulo-oro"
+                   text="" visible="false" alignment="CENTER"
+                   StackPane.alignment="CENTER"/>
 
-            <!-- Log central -->
-            <VBox VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS" spacing="10" alignment="TOP_CENTER">
-                <padding><Insets top="16" right="16" bottom="10" left="16"/></padding>
+        </StackPane>
+
+        <HBox styleClass="caja-dialogo-batalla" spacing="0" prefHeight="180" minHeight="180">
+
+            <VBox HBox.hgrow="ALWAYS" spacing="6">
+                <padding><Insets top="14" right="14" bottom="14" left="20"/></padding>
+
+                <Label fx:id="lblPrompt" styleClass="dialogo-prompt"
+                       text="Que hara el heroe?" wrapText="true"/>
 
                 <TextArea fx:id="txtLog"
-                          styleClass="log-combate"
+                          styleClass="log-combate-pokemon"
                           editable="false"
                           wrapText="true"
                           VBox.vgrow="ALWAYS"/>
 
-                <!-- Label resultado (oculto hasta que termina el combate) -->
-                <Label fx:id="lblResultado" styleClass="overlay-titulo-oro"
-                       text="" visible="false" alignment="CENTER"
-                       VBox.vgrow="NEVER"/>
-
-                <!-- Botones de acción -->
-                <HBox alignment="CENTER" spacing="12">
-                    <Button fx:id="btnAtacar"
-                            styleClass="btn-menu"
-                            text="⚔  ATACAR"
-                            prefWidth="160" prefHeight="42"
-                            onAction="#handleAtacar"/>
-                    <Button fx:id="btnHabilidad"
-                            styleClass="btn-menu"
-                            text="✨ Habilidad"
-                            prefWidth="200" prefHeight="42"
-                            onAction="#handleHabilidad"/>
-                    <Button fx:id="btnGuardarSalir"
-                            styleClass="btn-menu-secundario"
-                            text="💾  Guardar y Salir"
-                            prefWidth="170" prefHeight="42"
-                            onAction="#handleGuardarSalir"/>
-                </HBox>
-
-                <!-- Botón continuar (oculto hasta fin de combate) -->
                 <Button fx:id="btnContinuar"
                         styleClass="btn-menu"
-                        text="→  Siguiente Fase"
-                        prefWidth="240" prefHeight="44"
+                        text="Siguiente Fase"
+                        prefHeight="36"
                         visible="false"
+                        managed="false"
                         onAction="#handleContinuar"
                         alignment="CENTER"/>
-
             </VBox>
 
-            <!-- Separador vertical -->
-            <Rectangle styleClass="separador-arena" width="1.5" height="400"/>
+            <Rectangle styleClass="separador-arena" width="2" height="180"/>
 
-            <!-- Panel enemigo -->
-            <VBox styleClass="panel-combatiente" alignment="CENTER" spacing="10"
-                  prefWidth="230" minWidth="230">
-                <padding><Insets top="20" right="16" bottom="20" left="16"/></padding>
-                <Label fx:id="lblIconoEnemigo" styleClass="icono-combatiente" text="👹"/>
-                <Label fx:id="lblNombreEnemigo" styleClass="card-nombre"
-                       wrapText="true" textAlignment="CENTER" text="Enemigo"/>
-                <ProgressBar fx:id="barraVidaEnemigo" prefWidth="180" prefHeight="14"
-                             progress="1.0" styleClass="barra-vida"/>
-                <Label fx:id="lblHpEnemigo" styleClass="hud-etiqueta" text="— / — HP"/>
-            </VBox>
+            <GridPane fx:id="menuBatalla" hgap="10" vgap="10" alignment="CENTER">
+                <padding><Insets top="14" right="20" bottom="14" left="14"/></padding>
 
+                <columnConstraints>
+                    <ColumnConstraints prefWidth="155" minWidth="140"/>
+                    <ColumnConstraints prefWidth="155" minWidth="140"/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints prefHeight="62" minHeight="56"/>
+                    <RowConstraints prefHeight="62" minHeight="56"/>
+                </rowConstraints>
+
+                <Button fx:id="btnAtacar"
+                        styleClass="btn-batalla-pokemon"
+                        text="ATAQUE"
+                        onAction="#handleAtacar"
+                        GridPane.rowIndex="0" GridPane.columnIndex="0"
+                        maxWidth="Infinity" maxHeight="Infinity"/>
+                <Button fx:id="btnObjetos"
+                        styleClass="btn-batalla-pokemon"
+                        text="OBJETOS"
+                        onAction="#handleObjetos"
+                        GridPane.rowIndex="0" GridPane.columnIndex="1"
+                        maxWidth="Infinity" maxHeight="Infinity"/>
+                <Button fx:id="btnHabilidad"
+                        styleClass="btn-batalla-pokemon"
+                        text="HABILIDAD"
+                        onAction="#handleHabilidad"
+                        GridPane.rowIndex="1" GridPane.columnIndex="0"
+                        maxWidth="Infinity" maxHeight="Infinity"/>
+                <Button fx:id="btnHuir"
+                        styleClass="btn-batalla-pokemon-huir"
+                        text="HUIDA"
+                        onAction="#handleHuir"
+                        GridPane.rowIndex="1" GridPane.columnIndex="1"
+                        maxWidth="Infinity" maxHeight="Infinity"/>
+            </GridPane>
         </HBox>
 
     </VBox>
