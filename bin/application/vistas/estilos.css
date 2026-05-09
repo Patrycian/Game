@@ -1,0 +1,411 @@
+/* ═══════════════════════════════════════════════════════════════
+   Realm of Shadows – Estilos del Menú Principal
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Variables de color (definidas en .root para reutilizar) ── */
+.root {
+    -color-fondo:        #0a0a0f;
+    -color-fondo-medio:  #14141f;
+    -color-acento:       #c8a84b;
+    -color-acento-hover: #f0d070;
+    -color-texto:        #e8e0d0;
+    -color-subtitulo:    #8a7a60;
+    -color-btn-bg:       #1a1a26;
+    -color-btn-borde:    #3a3050;
+}
+
+/* ── Fondo principal ───────────────────────────────────────── */
+.root-pane {
+    -fx-background-color: #0a0a0f;
+}
+
+/* ── Panel central ─────────────────────────────────────────── */
+.panel-menu {
+    -fx-background-color: linear-gradient(to bottom, #14141f, #0d0d16);
+    -fx-border-color:     #2e2840;
+    -fx-border-width:     1.5;
+    -fx-border-radius:    4;
+    -fx-background-radius:4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.85), 40, 0.1, 0, 0);
+}
+
+/* ── Línea decorativa dorada ───────────────────────────────── */
+.linea-decorativa {
+    -fx-fill: rgba(200, 168, 75, 0.6);
+}
+
+/* ── Título ────────────────────────────────────────────────── */
+.titulo {
+    -fx-font-family:  "Georgia";
+    -fx-font-size:    52px;
+    -fx-font-weight:  bold;
+    -fx-text-fill:    #c8a84b;
+    -fx-alignment:    center;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.7), 25, 0, 0, 0);
+}
+
+/* ── Subtítulo ─────────────────────────────────────────────── */
+.subtitulo {
+    -fx-font-family:  "Georgia";
+    -fx-font-size:    15px;
+    -fx-font-style:   italic;
+    -fx-text-fill:    #8a7a60;
+}
+
+/* ── Botones del menú ──────────────────────────────────────── */
+.btn-menu {
+    -fx-background-color: #1a1a26;
+    -fx-border-color:     #3a3050;
+    -fx-border-width:     1;
+    -fx-border-radius:    2;
+    -fx-background-radius:2;
+    -fx-font-family:      "Georgia";
+    -fx-font-size:        14px;
+    -fx-font-weight:      bold;
+    -fx-text-fill:        #e8e0d0;
+    -fx-cursor:           hand;
+    -fx-alignment:        center;
+    -fx-padding:          0;
+}
+
+.btn-menu:hover {
+    -fx-background-color: #221e35;
+    -fx-border-color:     #c8a84b;
+    -fx-border-width:     1.5;
+    -fx-text-fill:        #f0d070;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.5), 12, 0, 0, 0);
+    -fx-scale-x:          1.03;
+    -fx-scale-y:          1.03;
+}
+
+.btn-menu:pressed {
+    -fx-background-color: #1a1528;
+    -fx-scale-x:          0.98;
+    -fx-scale-y:          0.98;
+}
+
+/* ── Etiqueta de versión ───────────────────────────────────── */
+.version {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   11px;
+    -fx-text-fill:   rgba(138,122,96,0.6);
+}
+
+/* ── Diálogo oscuro (Alert) ────────────────────────────────── */
+.dialog-oscuro {
+    -fx-background-color: #14141f;
+    -fx-border-color:     #3a3050;
+    -fx-border-width:     1.5;
+}
+
+.dialog-oscuro .content.label {
+    -fx-text-fill:   #e8e0d0;
+    -fx-font-family: "Georgia";
+    -fx-font-size:   14px;
+}
+
+.dialog-oscuro .button {
+    -fx-background-color: #1a1a26;
+    -fx-border-color:     #3a3050;
+    -fx-text-fill:        #e8e0d0;
+    -fx-font-family:      "Georgia";
+    -fx-cursor:           hand;
+}
+
+.dialog-oscuro .button:hover {
+    -fx-background-color: #221e35;
+    -fx-border-color:     #c8a84b;
+    -fx-text-fill:        #f0d070;
+}
+
+/* ── Título de pantalla interior ───────────────────────────────────── */
+.titulo-pantalla {
+    -fx-font-family:  "Georgia";
+    -fx-font-size:    30px;
+    -fx-font-weight:  bold;
+    -fx-text-fill:    #c8a84b;
+    -fx-alignment:    center;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.5), 15, 0, 0, 0);
+}
+
+/* ── Campo de texto ────────────────────────────────────────────────── */
+.label-campo {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   11px;
+    -fx-font-weight: bold;
+    -fx-text-fill:   #8a7a60;
+    -fx-padding:     0 0 0 2;
+}
+
+.campo-texto {
+    -fx-background-color: #0d0d16;
+    -fx-border-color:     #3a3050;
+    -fx-border-width:     1.5;
+    -fx-border-radius:    2;
+    -fx-background-radius:2;
+    -fx-text-fill:        #e8e0d0;
+    -fx-font-family:      "Georgia";
+    -fx-font-size:        15px;
+    -fx-prompt-text-fill: rgba(138,122,96,0.5);
+    -fx-padding:          10 14;
+}
+
+.campo-texto:focused {
+    -fx-border-color: #c8a84b;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.3), 8, 0, 0, 0);
+}
+
+/* ── Label de error ────────────────────────────────────────────────── */
+.label-error {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   13px;
+    -fx-text-fill:   #e05555;
+}
+
+/* ── Icono central ─────────────────────────────────────────────────── */
+.icono-central {
+    -fx-font-size: 52px;
+}
+
+/* ── Botón secundario (Volver) ─────────────────────────────────────── */
+.btn-menu-secundario {
+    -fx-background-color: transparent;
+    -fx-border-color:     #3a3050;
+    -fx-border-width:     1;
+    -fx-border-radius:    2;
+    -fx-background-radius:2;
+    -fx-font-family:      "Georgia";
+    -fx-font-size:        13px;
+    -fx-text-fill:        #8a7a60;
+    -fx-cursor:           hand;
+}
+
+.btn-menu-secundario:hover {
+    -fx-border-color: #8a7a60;
+    -fx-text-fill:    #e8e0d0;
+}
+
+/* ── Tarjetas de robot ──────────────────────────────────────────────── */
+.card-robot {
+    -fx-background-color: #14141f;
+    -fx-border-color:     #2e2840;
+    -fx-border-width:     1.5;
+    -fx-border-radius:    4;
+    -fx-background-radius:4;
+    -fx-cursor:           hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 15, 0, 0, 0);
+}
+
+.card-robot:hover {
+    -fx-background-color: #1a1a2e;
+    -fx-border-color:     #c8a84b;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.3), 18, 0, 0, 0);
+}
+
+.card-robot-seleccionada {
+    -fx-background-color: #1c1830;
+    -fx-border-color:     #c8a84b;
+    -fx-border-width:     2;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.5), 22, 0, 0, 0);
+}
+
+.card-icono {
+    -fx-font-size: 40px;
+}
+
+.card-nombre {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   18px;
+    -fx-font-weight: bold;
+    -fx-text-fill:   #c8a84b;
+}
+
+.card-descripcion {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   12px;
+    -fx-text-fill:   #8a7a60;
+    -fx-font-style:  italic;
+    -fx-max-width:   180;
+}
+
+.card-separador {
+    -fx-fill: rgba(200,168,75,0.3);
+}
+
+.card-habilidad {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   13px;
+    -fx-font-weight: bold;
+    -fx-text-fill:   #e8e0d0;
+    -fx-alignment:   center;
+}
+
+.card-habilidad-desc {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   11px;
+    -fx-text-fill:   #8a7a60;
+    -fx-max-width:   180;
+    -fx-alignment:   center;
+    -fx-text-alignment: center;
+}
+
+/* ── Label de robot seleccionado ───────────────────────────────────── */
+.label-seleccionado {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   14px;
+    -fx-text-fill:   #c8a84b;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.4), 8, 0, 0, 0);
+}
+
+/* ── HUD de la pantalla de juego ────────────────────────────────────── */
+.hud-barra {
+    -fx-background-color: #0d0d16;
+    -fx-border-color:     #2e2840;
+    -fx-border-width:     0 0 1.5 0;
+}
+
+.hud-etiqueta {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   10px;
+    -fx-text-fill:   #8a7a60;
+    -fx-font-weight: bold;
+}
+
+.hud-valor {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   16px;
+    -fx-font-weight: bold;
+    -fx-text-fill:   #c8a84b;
+}
+
+.hud-separador {
+    -fx-background-color: #2e2840;
+    -fx-padding:          0 10;
+}
+
+.btn-hud {
+    -fx-background-color: transparent;
+    -fx-border-color:     #3a3050;
+    -fx-border-width:     1;
+    -fx-border-radius:    2;
+    -fx-background-radius:2;
+    -fx-font-family:      "Georgia";
+    -fx-font-size:        12px;
+    -fx-text-fill:        #8a7a60;
+    -fx-cursor:           hand;
+    -fx-padding:          6 14;
+}
+
+.btn-hud:hover {
+    -fx-border-color: #c8a84b;
+    -fx-text-fill:    #c8a84b;
+}
+
+/* ── Overlays (pausa, game over, victoria) ──────────────────────────── */
+.overlay-pausa {
+    -fx-background-color: rgba(10, 10, 15, 0.88);
+    -fx-padding:          50;
+}
+
+.overlay-titulo {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   32px;
+    -fx-font-weight: bold;
+    -fx-text-fill:   #c8a84b;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.6), 20, 0, 0, 0);
+}
+
+.overlay-titulo-rojo {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   32px;
+    -fx-font-weight: bold;
+    -fx-text-fill:   #e05555;
+    -fx-effect: dropshadow(gaussian, rgba(224,85,85,0.6), 20, 0, 0, 0);
+}
+
+.overlay-titulo-oro {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   32px;
+    -fx-font-weight: bold;
+    -fx-text-fill:   #f0d070;
+    -fx-effect: dropshadow(gaussian, rgba(240,208,112,0.7), 20, 0, 0, 0);
+}
+
+.overlay-subtitulo {
+    -fx-font-family: "Georgia";
+    -fx-font-size:   16px;
+    -fx-text-fill:   #e8e0d0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Realm of Shadows – Estilos adicionales para Mazmorra y Combate
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Panel de combatiente (héroe / enemigo) ─────────────────── */
+.panel-combatiente {
+    -fx-background-color: #14141f;
+    -fx-border-color:     #2e2840;
+    -fx-border-width:     0 1.5 0 0;
+}
+
+/* ── Icono grande del combatiente ───────────────────────────── */
+.icono-combatiente {
+    -fx-font-size: 56px;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.4), 18, 0, 0, 0);
+}
+
+/* ── Separador vertical en la arena ─────────────────────────── */
+.separador-arena {
+    -fx-fill: #2e2840;
+}
+
+/* ── Barra de vida ───────────────────────────────────────────── */
+.barra-vida {
+    -fx-background-color: #0a0a0f;
+    -fx-border-color:     #2e2840;
+    -fx-border-width:     1;
+    -fx-border-radius:    2;
+    -fx-background-radius:2;
+}
+
+.barra-vida .bar {
+    -fx-background-color: #4caf50;
+    -fx-background-radius: 2;
+}
+
+/* ── Log de combate ──────────────────────────────────────────── */
+.log-combate {
+    -fx-background-color: #0d0d16;
+    -fx-border-color:     #2e2840;
+    -fx-border-width:     1.5;
+    -fx-border-radius:    2;
+    -fx-background-radius:2;
+    -fx-text-fill:        #e8e0d0;
+    -fx-font-family:      "Courier New";
+    -fx-font-size:        12px;
+    -fx-control-inner-background: #0d0d16;
+    -fx-highlight-fill:   #2e2840;
+}
+
+.log-combate .content {
+    -fx-background-color: #0d0d16;
+}
+
+/* ── ScrollPane sin decoración ───────────────────────────────── */
+.scroll-ranking {
+    -fx-background-color: transparent;
+    -fx-border-color:     transparent;
+}
+
+.scroll-ranking .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-ranking .scroll-bar {
+    -fx-background-color: #14141f;
+}
+
+.scroll-ranking .scroll-bar .thumb {
+    -fx-background-color: #3a3050;
+    -fx-background-radius: 2;
+}

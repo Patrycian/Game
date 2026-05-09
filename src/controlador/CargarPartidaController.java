@@ -1,0 +1,135 @@
+package controlador;
+
+import dao.JugadorDAO;
+import dao.PartidaDAO;
+import dao.PersonajeDAO;
+import modelo.*;
+
+import javafx.animation.*;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+
+import java.net.URL;
+import java.util.List;
+import java.util.Random;
+import java.util.ResourceBundle;
+
+/**
+ * Controlador de la pantalla "Cargar Partida".
+ * Lista las partidas EN_CURSO guardadas y permite reanudar una.
+ */
+public class CargarPartidaController implements Initializable {
+
+    @FXML private Pane panelParticulas;
+    @FXML private VBox contenedorPartidas;
+    @FXML private Label lblEstado;
+
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        generarParticulas();
+        cargarPartidas();
+    }
+
+    private void cargarPartidas() {
+        contenedorPartidas.getChildren().clear();
+        try {
+            List<Partida> partidas = PartidaDAO.listarPartidasActivas();
+            if (partidas.isEmpty()) {
+                lblEstado.setText("No hay partidas guardadas.");
+                lblEstado.setVisible(true);
+                return;
+            }
+            lblEstado.setVisible(false);
+
+            for (Partida p : partidas) {
+                Jugador jugador = JugadorDAO.buscarPorId(p.getIdJugador());
+                Heroe   heroe   = PersonajeDAO.buscarPorId(p.getIdPersonaje());
+                if (jugador == null || heroe == null) continue;
+
+                HBox fila = crearFilaPartida(p, jugador, heroe);
+                contenedorPartidas.getChildren().add(fila);
+            }
+        } catch (Exception e) {
+            lblEstado.setText("⚠ Error al conectar con la base de datos.");
+            lblEstado.setVisible(true);
+            e.printStackTrace();
+        }
+    }
+
+    private HBox crearFilaPartida(Partida p, Jugador jugador, Heroe heroe) {
+        HBox fila = new HBox(16);
+        fila.setStyle("-fx-background-color: #14141f; -fx-border-color: #2e2840; "
+                + "-fx-border-width: 1; -fx-border-radius: 2; -fx-background-radius: 2; "
+                + "-fx-padding: 12 20; -fx-cursor: hand;");
+
+        Label lblInfo = new Label(String.format("%s  —  %s %s  —  Fase %d  —  HP %d",
+                jugador.getNick(), heroe.getIcono(), heroe.getTipo(), p.getFaseActual(), p.getHpActual()));
+        lblInfo.setStyle("-fx-font-family: Georgia; -fx-font-size: 14px; -fx-text-fill: #e8e0d0;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button btnReanudar = new Button("▶  Reanudar");
+        btnReanudar.setStyle("-fx-background-color: #1a1a26; -fx-border-color: #c8a84b; "
+                + "-fx-border-width: 1; -fx-text-fill: #f0d070; -fx-font-family: Georgia; "
+                + "-fx-cursor: hand; -fx-border-radius: 2; -fx-background-radius: 2;");
+        btnReanudar.setOnAction(e -> reanudarPartida(p, jugador, heroe));
+
+        fila.getChildren().addAll(lblInfo, spacer, btnReanudar);
+        return fila;
+    }
+
+    private void reanudarPartida(Partida partida, Jugador jugador, Heroe heroe) {
+        // Restaurar el HP guardado al héroe
+        heroe.setPuntosGolpe(partida.getHpActual());
+
+        GameSession sesion = new GameSession(jugador, heroe);
+        sesion.setFaseActual(partida.getFaseActual());
+        sesion.setPartida(partida);
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/application/vistas/Mazmorra.fxml"));
+            Parent root = loader.load();
+            MazmorraController siguiente = loader.getController();
+            siguiente.iniciarSesion(sesion);
+            Stage stage = (Stage) contenedorPartidas.getScene().getWindow();
+            stage.setScene(new Scene(root, 900, 650));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleVolver() {
+        try {
+            Parent root = FXMLLoader.load(
+                getClass().getResource("/application/vistas/MenuPrincipal.fxml"));
+            Stage stage = (Stage) contenedorPartidas.getScene().getWindow();
+            stage.setScene(new Scene(root, 900, 650));
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void generarParticulas() {
+        Random rnd = new Random(11);
+        for (int i = 0; i < 60; i++) {
+            double x = rnd.nextDouble() * 900, y = rnd.nextDouble() * 650;
+            double r = 0.5 + rnd.nextDouble() * 1.2, o = 0.2 + rnd.nextDouble() * 0.5;
+            Circle c = new Circle(x, y, r, Color.web("#c8a84b", o));
+            FadeTransition ft = new FadeTransition(Duration.seconds(2 + rnd.nextDouble() * 3), c);
+            ft.setFromValue(o * 0.3); ft.setToValue(o);
+            ft.setAutoReverse(true); ft.setCycleCount(Animation.INDEFINITE);
+            ft.setDelay(Duration.seconds(rnd.nextDouble() * 4)); ft.play();
+            panelParticulas.getChildren().add(c);
+        }
+    }
+}

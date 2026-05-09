@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.geometry.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controlador.ResultadoController"
+           stylesheets="@estilos.css"
+           styleClass="root-pane">
+
+    <Pane fx:id="panelParticulas" mouseTransparent="true"/>
+
+    <VBox styleClass="panel-menu" alignment="CENTER" spacing="18" maxWidth="480">
+        <padding><Insets top="50" right="60" bottom="50" left="60"/></padding>
+
+        <Rectangle styleClass="linea-decorativa" width="340" height="1"/>
+
+        <!-- Título dinámico (victoria / derrota) -->
+        <Label fx:id="lblTitulo" styleClass="overlay-titulo-oro"
+               text="RESULTADO" alignment="CENTER" wrapText="true"/>
+
+        <Label fx:id="lblSubtitulo" styleClass="subtitulo"
+               text="" alignment="CENTER" wrapText="true"/>
+
+        <Rectangle styleClass="linea-decorativa" width="340" height="1"/>
+        <Region prefHeight="10"/>
+
+        <!-- Datos de la partida -->
+        <Label fx:id="lblJugador" styleClass="hud-valor" text="Jugador: —"/>
+        <Label fx:id="lblHeroe"   styleClass="hud-valor" text="Héroe: —"/>
+        <Label fx:id="lblFase"    styleClass="hud-valor" text="Fase alcanzada: —"/>
+        <Label fx:id="lblPuntos"  styleClass="overlay-titulo-oro"
+               text="Puntuación: —" alignment="CENTER"/>
+
+        <Region prefHeight="14"/>
+
+        <Button styleClass="btn-menu"
+                text="📜  VOLVER AL MENÚ"
+                prefWidth="240" prefHeight="46"
+                onAction="#handleVolver"/>
+
+        <Rectangle styleClass="linea-decorativa" width="340" height="1"/>
+    </VBox>
+
+</StackPane>

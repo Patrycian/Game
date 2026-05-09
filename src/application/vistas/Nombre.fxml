@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.geometry.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controlador.NombreController"
+           stylesheets="@estilos.css"
+           styleClass="root-pane">
+
+    <Pane fx:id="panelParticulas" mouseTransparent="true"/>
+
+    <VBox styleClass="panel-menu" alignment="CENTER" spacing="22"
+          maxWidth="420">
+
+        <padding>
+            <Insets top="50" right="60" bottom="50" left="60"/>
+        </padding>
+
+        <Rectangle styleClass="linea-decorativa" width="300" height="1"/>
+
+        <Label styleClass="titulo-pantalla" text="NUEVA PARTIDA"/>
+
+        <Label styleClass="subtitulo"
+               text="✦  Introduce tu nombre de comandante  ✦"/>
+
+        <Rectangle styleClass="linea-decorativa" width="300" height="1"/>
+
+        <Region prefHeight="2"/>
+
+        <Label styleClass="icono-central" text="🤖"/>
+
+        <Label styleClass="label-campo" text="NOMBRE DEL COMANDANTE"/>
+
+        <TextField fx:id="txtNombre"
+                   styleClass="campo-texto"
+                   promptText="Escribe tu nombre..."
+                   maxWidth="280"/>
+
+        <Label fx:id="lblError" styleClass="label-error" text=""
+               visible="false"/>
+
+        <Region prefHeight="8"/>
+
+        <Button fx:id="btnContinuar"
+                styleClass="btn-menu"
+                text="⚡  CONTINUAR"
+                prefWidth="280" prefHeight="46"
+                onAction="#handleContinuar"/>
+
+        <Button styleClass="btn-menu-secundario"
+                text="←  VOLVER"
+                prefWidth="280" prefHeight="40"
+                onAction="#handleVolver"/>
+
+        <Region prefHeight="6"/>
+
+        <Label styleClass="version" text="v1.0.0  •  Nueva Partida"/>
+
+    </VBox>
+
+</StackPane>

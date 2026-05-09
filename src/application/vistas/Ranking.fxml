@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.geometry.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controlador.RankingController"
+           stylesheets="@estilos.css"
+           styleClass="root-pane">
+
+    <Pane fx:id="panelParticulas" mouseTransparent="true"/>
+
+    <VBox alignment="CENTER" spacing="20">
+        <padding><Insets top="30" right="60" bottom="30" left="60"/></padding>
+
+        <Rectangle styleClass="linea-decorativa" width="560" height="1"/>
+        <Label styleClass="titulo-pantalla" text="🏆  RANKING DE HÉROES"/>
+        <Label styleClass="subtitulo" text="✦  Los mejores aventureros de la mazmorra  ✦"/>
+        <Rectangle styleClass="linea-decorativa" width="560" height="1"/>
+
+        <Region prefHeight="10"/>
+
+        <ScrollPane fitToWidth="true" prefHeight="380" maxWidth="560"
+                    styleClass="scroll-ranking">
+            <VBox fx:id="contenedorRanking" spacing="8" alignment="TOP_CENTER">
+                <padding><Insets top="4" right="0" bottom="4" left="0"/></padding>
+            </VBox>
+        </ScrollPane>
+
+        <Region prefHeight="10"/>
+
+        <Button styleClass="btn-menu-secundario"
+                text="←  VOLVER AL MENÚ"
+                prefWidth="220" prefHeight="42"
+                onAction="#handleVolver"/>
+    </VBox>
+
+</StackPane>

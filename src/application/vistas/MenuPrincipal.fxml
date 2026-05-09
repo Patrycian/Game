@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controlador.MenuController"
+           stylesheets="@estilos.css"
+           styleClass="root-pane">
+
+    <Pane fx:id="panelParticulas" mouseTransparent="true"/>
+
+    <VBox styleClass="panel-menu" alignment="CENTER" spacing="18"
+          maxWidth="380">
+
+        <padding>
+            <Insets top="40" right="60" bottom="40" left="60"/>
+        </padding>
+
+        <Rectangle styleClass="linea-decorativa" width="280" height="1"/>
+
+        <Label styleClass="titulo" text="REALM OF&#10;SHADOWS"
+               alignment="CENTER" textAlignment="CENTER"/>
+
+        <Label styleClass="subtitulo" text="✦  Forja tu leyenda  ✦"/>
+
+        <Rectangle styleClass="linea-decorativa" width="280" height="1"/>
+
+        <Region prefHeight="10"/>
+
+        <Button fx:id="btnNuevaPartida"
+                styleClass="btn-menu"
+                text="⚔   NUEVA PARTIDA"
+                prefWidth="280" prefHeight="46"
+                onAction="#handleNuevaPartida"/>
+
+        <Button fx:id="btnCargarPartida"
+                styleClass="btn-menu"
+                text="📜  CARGAR PARTIDA"
+                prefWidth="280" prefHeight="46"
+                onAction="#handleCargarPartida"/>
+
+        <Button fx:id="btnRanking"
+                styleClass="btn-menu"
+                text="🏆  RANKING"
+                prefWidth="280" prefHeight="46"
+                onAction="#handleRanking"/>
+
+        <Button styleClass="btn-menu"
+                text="✖   SALIR"
+                prefWidth="280" prefHeight="46"
+                onAction="#handleSalir"/>
+
+        <Region prefHeight="6"/>
+
+        <Label styleClass="version"
+               text="v1.0.0  •  Menú Principal"/>
+
+    </VBox>
+
+</StackPane>
