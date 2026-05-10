@@ -16,7 +16,7 @@ public class Main extends Application {
         Parent root = loader.load();
 
         Scene scene = new Scene(root, 900, 650);
-        stage.setTitle("Realm of Shadows – Juego de Mazmorras por Turnos");
+        stage.setTitle("Lost Realm");
         stage.setResizable(false);
         stage.setScene(scene);
         stage.show();

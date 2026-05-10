@@ -13,6 +13,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
@@ -27,13 +28,20 @@ public class MenuController implements Initializable {
     @FXML private Button btnNuevaPartida;
     @FXML private Button btnCargarPartida;
     @FXML private Button btnRanking;
+    @FXML private Button btnSalir;
     private MediaPlayer mediaPlayer;
+    private AudioClip   sonidoHover;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         generarParticulas();
         animarEntrada();
-        iniciarMusica(); 
+        iniciarMusica();
+        inicializarSonidoHover();
+        agregarSonidoHover(btnNuevaPartida);
+        agregarSonidoHover(btnCargarPartida);
+        agregarSonidoHover(btnRanking);
+        agregarSonidoHover(btnSalir);
     }
 
     // ── Handlers ─────────────────────────────────────────────────────────────
@@ -142,6 +150,21 @@ public class MenuController implements Initializable {
         });
     }
     
+    private void inicializarSonidoHover() {
+        try {
+            URL url = getClass().getResource("/recursos/audio/cursor.wav");
+            if (url != null) sonidoHover = new AudioClip(url.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void agregarSonidoHover(Button btn) {
+        btn.setOnMouseEntered(e -> {
+            if (sonidoHover != null) sonidoHover.play();
+        });
+    }
+
     private void iniciarMusica() {
         try {
             URL recurso = getClass().getResource("/recursos/audio/Menu.mp3");

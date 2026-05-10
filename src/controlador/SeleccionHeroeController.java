@@ -16,6 +16,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
+import javafx.scene.media.AudioClip;
 import javafx.util.Duration;
 
 import java.net.URL;
@@ -33,17 +34,25 @@ public class SeleccionHeroeController implements Initializable {
     @FXML private Label  lblSaludo;
     @FXML private Label  lblSeleccionado;
     @FXML private Button btnAventura;
+    @FXML private Button btnVolver;
     @FXML private VBox   cardMago;
     @FXML private VBox   cardGuerrero;
     @FXML private VBox   cardClerigo;
 
-    private String nombreJugador;
-    private Heroe  heroeSeleccionado;
+    private String    nombreJugador;
+    private Heroe     heroeSeleccionado;
+    private AudioClip sonidoHover;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         generarParticulas();
         animarEntrada();
+        inicializarSonidoHover();
+        agregarSonidoHover(btnAventura);
+        agregarSonidoHover(btnVolver);
+        cardMago.setOnMouseEntered(e     -> { if (sonidoHover != null) sonidoHover.play(); });
+        cardGuerrero.setOnMouseEntered(e -> { if (sonidoHover != null) sonidoHover.play(); });
+        cardClerigo.setOnMouseEntered(e  -> { if (sonidoHover != null) sonidoHover.play(); });
     }
 
     public void setNombreJugador(String nombre) {
@@ -120,6 +129,21 @@ public class SeleccionHeroeController implements Initializable {
         lblSeleccionado.setVisible(true);
         lblSeleccionado.setManaged(true);
         btnAventura.setDisable(false);
+    }
+
+    private void inicializarSonidoHover() {
+        try {
+            URL url = getClass().getResource("/recursos/audio/cursor.wav");
+            if (url != null) sonidoHover = new AudioClip(url.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void agregarSonidoHover(Button btn) {
+        btn.setOnMouseEntered(e -> {
+            if (sonidoHover != null) sonidoHover.play();
+        });
     }
 
     private void mostrarError(String msg) {
