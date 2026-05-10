@@ -46,6 +46,7 @@ public class MazmorraController implements Initializable {
     @FXML private ProgressBar barraVidaHeroe;
     @FXML private Label       lblNombreEnemigo;
     @FXML private ProgressBar barraVidaEnemigo;
+    @FXML private Label       lblHpEnemigo;
     @FXML private ImageView   imgHeroe;
     @FXML private Label       lblIconoEnemigo;
 
@@ -590,6 +591,7 @@ public class MazmorraController implements Initializable {
         Enemigo e = motor.getEnemigo();
         double pct = e.getPorcentajeVida();
         barraVidaEnemigo.setProgress(pct);
+        lblHpEnemigo.setText(e.getPuntosGolpe() + " / " + e.getPuntosGolpeMax() + " HP");
         colorearBarra(barraVidaEnemigo, pct);
     }
 

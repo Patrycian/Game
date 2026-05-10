@@ -37,6 +37,10 @@
                             <ProgressBar fx:id="barraVidaEnemigo" prefWidth="200" prefHeight="10"
                                          progress="1.0" styleClass="barra-vida-pokemon"/>
                         </HBox>
+                        <HBox alignment="CENTER_RIGHT">
+                            <Label fx:id="lblHpEnemigo" styleClass="info-pokemon-hp-num"
+                                   text="-/- HP"/>
+                        </HBox>
                     </VBox>
 
                     <Region HBox.hgrow="ALWAYS"/>
