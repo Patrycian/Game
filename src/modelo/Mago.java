@@ -8,6 +8,10 @@ package modelo;
  */
 public class Mago extends Magico {
 
+	// ── Escudo Arcano ────────────────────────────────────────────────────────
+	private static final int COSTE_ESCUDO = 10;
+	private boolean escudoActivo = false;
+
 	public Mago(String nombre) {
 		super(nombre, /* hp */ 80, /* def */ 5, /* poder */ 25, /* pm */ 30,
 				"Bola de Fuego",
@@ -33,6 +37,48 @@ public class Mago extends Magico {
 	public String getRutaImagen() {
 		return "/recursos/imagen/mago.png";
 	}
+
+	// ── Override: absorción de daño con el escudo ────────────────────────────
+
+	/**
+	 * Si el Escudo Arcano está activo, absorbe el golpe por completo (daño 0)
+	 * y registra un mensaje descriptivo que el motor mostrará en el log.
+	 * El escudo se consume tras absorber un único ataque.
+	 */
+	@Override
+	public int recibirAtaque(Personaje atacante) {
+		if (escudoActivo) {
+			escudoActivo = false;
+			registrarMensajeDefensa("🛡 ¡Escudo Arcano! El ataque de " + atacante.getNombre()
+					+ " fue absorbido por completo. " + getNombre() + " no recibe daño.");
+			return 0;
+		}
+		return super.recibirAtaque(atacante);
+	}
+
+	// ── Habilidades mágicas adicionales ──────────────────────────────────────
+
+	@Override
+	public String ejecutarHabilidadAdicional(String nombre, Personaje objetivo) {
+		if ("Escudo Arcano".equals(nombre)) {
+			escudoActivo = true;
+			return "🛡 ¡Escudo Arcano! " + getNombre()
+					+ " se envuelve en una barrera mágica. El siguiente ataque enemigo será absorbido.";
+		}
+		return null;
+	}
+
+	@Override
+	public int getCostePmHabilidad(String nombre) {
+		return "Escudo Arcano".equals(nombre) ? COSTE_ESCUDO : 0;
+	}
+
+	@Override
+	public boolean isHabilidadAdicionalActiva(String nombre) {
+		return "Escudo Arcano".equals(nombre) && escudoActivo;
+	}
+
+	// ── Habilidad especial ────────────────────────────────────────────────────
 
 	/**
 	 * Bola de Fuego: inflige poder × 2 directamente al objetivo, ignorando su

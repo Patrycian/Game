@@ -10,6 +10,13 @@ public abstract class Heroe extends Personaje {
 	private String nombreHabilidad;
 	private String descHabilidad;
 
+	/**
+	 * Mensaje de defensa pendiente: lo registra una subclase cuando absorbe o
+	 * reduce un ataque entrante (p. ej. Escudo Arcano del Mago).
+	 * El motor lo consume para sustituir el mensaje de golpe del enemigo.
+	 */
+	private String mensajeDefensa = null;
+
 	protected Heroe(String nombre, int puntosGolpe, int defensa, int poder, String nombreHabilidad,
 			String descHabilidad) {
 		super(nombre, puntosGolpe, defensa, poder);
@@ -57,6 +64,30 @@ public abstract class Heroe extends Personaje {
 
 	public String getDescHabilidad() {
 		return descHabilidad;
+	}
+
+	// ── Mecanismo de absorción de daño ────────────────────────────────────────
+
+	/**
+	 * Permite a una subclase registrar un mensaje que sustituirá al del ataque
+	 * enemigo en el log de combate (p. ej. "¡Escudo Arcano absorbió el golpe!").
+	 * Se llama típicamente desde un override de {@link #recibirAtaque}.
+	 */
+	protected void registrarMensajeDefensa(String msg) {
+		this.mensajeDefensa = msg;
+	}
+
+	/**
+	 * El motor llama a este método tras {@code enemigo.realizarAtaque(heroe)}.
+	 * Si devuelve un valor no nulo, ese texto reemplaza el mensaje del ataque en el log.
+	 * Se consume al leerlo (no persiste entre llamadas).
+	 *
+	 * @return mensaje de defensa registrado, o {@code null} si no hay ninguno
+	 */
+	public String consumirMensajeDefensa() {
+		String m = mensajeDefensa;
+		mensajeDefensa = null;
+		return m;
 	}
 
 	/**

@@ -79,9 +79,13 @@ public class MazmorraController implements Initializable {
     private MediaPlayer mediaPlayer;
 
     // ── Inventario simple del combate ────────────────────────────────────────
-    /** Pociones disponibles en el combate actual (se reinicia cada fase). */
+    /** Pociones de curación (se reinician cada fase). */
     private int pocionesRestantes = 3;
     private static final int CURACION_POCION = 30;
+
+    /** Pociones mágicas (se reinician cada fase; los PM NO se reinician). */
+    private int pocionesMagicasRestantes = 2;
+    private static final int RESTAURACION_PM_POCION = 10;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) { /* configuración en iniciarSesion */ }
@@ -100,10 +104,10 @@ public class MazmorraController implements Initializable {
         Enemigo enemigo = MotorCombate.generarEnemigo(fase);
 
         heroe.reiniciarHabilidad();   // la habilidad especial se recarga entre fases
-        if (heroe instanceof Magico) ((Magico) heroe).restaurarPm(); // PM al máximo cada fase
         motor = new MotorCombate(heroe, enemigo);
         combateTerminado = false;
-        pocionesRestantes = 3;        // 3 pociones por combate
+        pocionesRestantes        = 3; // 3 pociones de curación por fase
+        pocionesMagicasRestantes = 2; // 2 pociones mágicas por fase
 
         // ── Labels de fase
         lblFase.setText("⚔  FASE " + fase + (fase == 4 ? "  —  JEFE FINAL" : "  —  MAZMORRA"));
@@ -209,23 +213,40 @@ public class MazmorraController implements Initializable {
     private void handleObjetos() {
         if (combateTerminado) return;
 
-        if (pocionesRestantes <= 0) {
+        if (pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0) {
             agregarLog("🎒 No te quedan objetos.");
             return;
         }
 
-        // Confirmación sencilla del uso de la poción
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        // Construimos los botones disponibles según el stock actual
+        ButtonType btnCuracion = new ButtonType(
+                "🧪 Poción de curación  ×" + pocionesRestantes
+                + "  (+" + CURACION_POCION + " HP)",
+                javafx.scene.control.ButtonBar.ButtonData.LEFT);
+        ButtonType btnMagica = new ButtonType(
+                "🔮 Poción mágica  ×" + pocionesMagicasRestantes
+                + "  (+" + RESTAURACION_PM_POCION + " PM)",
+                javafx.scene.control.ButtonBar.ButtonData.RIGHT);
+
+        Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle("Objetos");
-        alert.setHeaderText("🧪  Poción de curación  ×" + pocionesRestantes);
-        alert.setContentText("Recupera " + CURACION_POCION + " HP. ¿Usar una poción?");
+        alert.setHeaderText("🎒  ¿Qué objeto quieres usar?");
+
+        if (pocionesRestantes    > 0) alert.getButtonTypes().add(btnCuracion);
+        if (pocionesMagicasRestantes > 0) alert.getButtonTypes().add(btnMagica);
+        alert.getButtonTypes().add(ButtonType.CANCEL);
+
         alert.getDialogPane().getStylesheets().add(
                 getClass().getResource("/application/vistas/estilos.css").toExternalForm());
         alert.getDialogPane().getStyleClass().add("dialog-oscuro");
 
         Optional<ButtonType> resp = alert.showAndWait();
-        if (resp.isPresent() && resp.get() == ButtonType.OK) {
+        if (!resp.isPresent()) return;
+
+        if (resp.get() == btnCuracion) {
             ejecutarTurno(AccionHeroe.POCION);
+        } else if (resp.get() == btnMagica) {
+            ejecutarTurno(AccionHeroe.POCION_MAGICA);
         }
     }
 
@@ -262,7 +283,7 @@ public class MazmorraController implements Initializable {
     // ── Lógica de turno ───────────────────────────────────────────────────────
 
     /** Tipos de acción que puede ejecutar el héroe en su turno. */
-    private enum AccionHeroe { ATAQUE, HABILIDAD, POCION }
+    private enum AccionHeroe { ATAQUE, HABILIDAD, POCION, POCION_MAGICA }
 
     private void ejecutarTurno(AccionHeroe accion) {
         if (combateTerminado) return;
@@ -318,7 +339,42 @@ public class MazmorraController implements Initializable {
                 }
 
                 actualizarTextoBotonObjetos();
-                if (pocionesRestantes <= 0) btnObjetos.setDisable(true);
+                if (pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0)
+                    btnObjetos.setDisable(true);
+                break;
+            }
+            case POCION_MAGICA: {
+                pocionesMagicasRestantes--;
+                Heroe h = sesion.getHeroe();
+
+                if (h instanceof Magico) {
+                    Magico m = (Magico) h;
+                    int pmAntes = m.getPm();
+                    m.restaurarPmParcial(RESTAURACION_PM_POCION);
+                    int restaurado = m.getPm() - pmAntes;
+                    agregarLog("🔮 " + h.getNombre() + " usa una poción mágica y recupera "
+                            + restaurado + " PM. (PM: " + m.getPm() + "/" + m.getPmMax() + ")");
+                } else {
+                    agregarLog("🔮 " + h.getNombre() + " usa una poción mágica..."
+                            + " ¡No tienes PM! La poción no hizo efecto.");
+                }
+
+                // El enemigo aprovecha el turno y contraataca (si sigue vivo)
+                Enemigo enemigo2 = motor.getEnemigo();
+                if (enemigo2.estaVivo()) {
+                    String ataque2 = enemigo2.realizarAtaque(h);
+                    String defensa2 = h.consumirMensajeDefensa();
+                    agregarLog(defensa2 != null ? defensa2 : ataque2);
+                    animarGolpe(imgHeroe);
+                    if (!h.estaVivo()) {
+                        agregarLog("💀 " + h.getNombre() + " ha caído en combate...");
+                        agregarLog("☠ Derrota. Fin de la aventura.");
+                    }
+                }
+
+                actualizarTextoBotonObjetos();
+                if (pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0)
+                    btnObjetos.setDisable(true);
                 break;
             }
         }
@@ -330,8 +386,9 @@ public class MazmorraController implements Initializable {
 
         // Determinar si el combate terminó (motor o muerte por contraataque)
         ResultadoCombate resultado = motor.getResultado();
-        if (accion == AccionHeroe.POCION && !sesion.getHeroe().estaVivo()) {
-            // si murió por contraataque tras la poción
+        if ((accion == AccionHeroe.POCION || accion == AccionHeroe.POCION_MAGICA)
+                && !sesion.getHeroe().estaVivo()) {
+            // si murió por contraataque tras usar una poción
             resultado = ResultadoCombate.DERROTA;
         }
 
@@ -479,16 +536,93 @@ public class MazmorraController implements Initializable {
                 btn.setText("✨ " + nombre.toUpperCase() + "  (usada)");
                 btn.setDisable(true);
             } else {
-                // Habilidad pasiva / no usable directamente en combate
-                btn.setText("🔒 " + nombre.toUpperCase());
-                Tooltip tipBloq = new Tooltip(descripcion + "\n\n(Habilidad pasiva — no disponible en combate directo)");
-                tipBloq.setWrapText(true);
-                tipBloq.setMaxWidth(210);
-                btn.setTooltip(tipBloq);
-                btn.setDisable(true);
+                // Habilidad adicional — se activa si tiene PM suficientes y no está ya activa
+                int     coste      = magico.getCostePmHabilidad(nombre);
+                boolean estaActiva = magico.isHabilidadAdicionalActiva(nombre);
+                boolean tienePm    = magico.getPm() >= coste;
+
+                if (estaActiva) {
+                    // Ya activa: se muestra como info, no se puede relanzar
+                    btn.setText("✅ " + nombre.toUpperCase() + "  (activa)");
+                    btn.setDisable(true);
+                } else if (coste > 0 && tienePm) {
+                    // Implementada y con PM suficientes: activable
+                    btn.setText("✨ " + nombre.toUpperCase() + "  (−" + coste + " PM)");
+                    final String nombreFinal = nombre;
+                    btn.setOnAction(e -> {
+                        handleVolverMenu();
+                        ejecutarHabilidadMagicaAdicional(nombreFinal);
+                    });
+                } else if (coste > 0) {
+                    // Implementada pero PM insuficientes
+                    btn.setText("✨ " + nombre.toUpperCase() + "  (PM insuf.)");
+                    btn.setDisable(true);
+                } else {
+                    // Sin implementación de combate aún
+                    btn.setText("🔒 " + nombre.toUpperCase());
+                    Tooltip tipBloq = new Tooltip(descripcion
+                            + "\n\n(Habilidad no disponible en combate directo)");
+                    tipBloq.setWrapText(true);
+                    tipBloq.setMaxWidth(210);
+                    btn.setTooltip(tipBloq);
+                    btn.setDisable(true);
+                }
             }
 
             contenedorHabilidades.getChildren().add(btn);
+        }
+    }
+
+    /**
+     * Ejecuta una habilidad mágica adicional (Escudo Arcano, Bendición Sagrada…).
+     * Flujo: gasta PM → aplica efecto → el enemigo contraataca (turno completo).
+     *
+     * @param nombre nombre de la habilidad registrada en el catálogo de {@link Magico}
+     */
+    private void ejecutarHabilidadMagicaAdicional(String nombre) {
+        if (combateTerminado) return;
+        Magico magico = (Magico) sesion.getHeroe();
+
+        // 1. Verificar y gastar PM
+        int coste = magico.getCostePmHabilidad(nombre);
+        if (!magico.gastarPm(coste)) {
+            agregarLog("⚠ PM insuficientes para usar " + nombre
+                    + ". (PM: " + magico.getPm() + "/" + magico.getPmMax() + ")");
+            return;
+        }
+
+        // 2. Aplicar el efecto de la habilidad
+        Personaje objetivo = motor.getEnemigo(); // algunas habilidades se aplican sobre sí mismo
+        String efecto = magico.ejecutarHabilidadAdicional(nombre, objetivo);
+        if (efecto == null) {
+            // La habilidad no tuvo efecto (ya activa u otro motivo); reembolsar PM
+            magico.restaurarPmParcial(coste);
+            agregarLog("⚠ " + nombre + " no tuvo efecto.");
+            return;
+        }
+        agregarLog(efecto);
+
+        // 3. Contraataque del enemigo (ocupa el turno del héroe)
+        List<String> contraataque = motor.ejecutarContraataqueEnemigo();
+        contraataque.forEach(this::agregarLog);
+
+        // Animación: el héroe recibe el golpe (si el enemigo atacó)
+        if (!contraataque.isEmpty()) {
+            PauseTransition espera = new PauseTransition(Duration.millis(200));
+            espera.setOnFinished(ev -> animarGolpe(imgHeroe));
+            espera.play();
+        }
+
+        agregarLog("");
+        actualizarBarraHeroe();
+        actualizarBarraEnemigo();
+        actualizarBarraPm();
+
+        // 4. Comprobar fin de combate
+        ResultadoCombate resultado = motor.getResultado();
+        if (resultado != ResultadoCombate.EN_CURSO) {
+            combateTerminado = true;
+            procesarFinCombate(resultado);
         }
     }
 
@@ -602,7 +736,8 @@ public class MazmorraController implements Initializable {
 
     private void actualizarTextoBotonObjetos() {
         if (btnObjetos != null) {
-            btnObjetos.setText("🎒  OBJETOS (" + pocionesRestantes + ")");
+            btnObjetos.setText("🎒  OBJETOS  🧪" + pocionesRestantes
+                    + " 🔮" + pocionesMagicasRestantes);
         }
     }
 

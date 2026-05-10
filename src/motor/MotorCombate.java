@@ -87,9 +87,45 @@ public class MotorCombate {
 
         // 3. Contraataque del enemigo
         String ataqueEnemigo = enemigo.realizarAtaque(heroe);
-        log.add(ataqueEnemigo);
+        // Si el héroe tiene un mensaje de defensa pendiente (p. ej. Escudo Arcano),
+        // lo usamos en lugar del mensaje del ataque enemigo.
+        String mensajeDefensa = heroe.consumirMensajeDefensa();
+        log.add(mensajeDefensa != null ? mensajeDefensa : ataqueEnemigo);
 
         // 4. Comprobar si el héroe ha caído
+        if (!heroe.estaVivo()) {
+            resultado = ResultadoCombate.DERROTA;
+            log.add("💀 " + heroe.getNombre() + " ha caído en combate...");
+            log.add("☠ Derrota. Fin de la aventura.");
+        }
+
+        return log;
+    }
+
+    /**
+     * Ejecuta únicamente el contraataque del enemigo, sin acción previa del héroe.
+     * Se usa cuando el héroe realiza una habilidad mágica adicional (p. ej. Escudo
+     * Arcano, Bendición Sagrada) que ocupa su turno pero no es un ataque directo
+     * gestionado por {@link #ejecutarTurnoHeroe}.
+     *
+     * <p>Si el Escudo Arcano está activo cuando el enemigo ataca, el override de
+     * {@link Heroe#recibirAtaque} absorbe el golpe y registra el mensaje descriptivo,
+     * que este método recupera con {@link Heroe#consumirMensajeDefensa()}.</p>
+     *
+     * @return lista de mensajes del contraataque (vacía si el combate ya terminó
+     *         o el enemigo está derrotado)
+     */
+    public List<String> ejecutarContraataqueEnemigo() {
+        List<String> log = new ArrayList<>();
+        if (resultado != ResultadoCombate.EN_CURSO || !enemigo.estaVivo()) return log;
+
+        turno++;
+        log.add("── Turno " + turno + " ──────────────────────────");
+
+        String ataque       = enemigo.realizarAtaque(heroe);
+        String mensajeDefensa = heroe.consumirMensajeDefensa();
+        log.add(mensajeDefensa != null ? mensajeDefensa : ataque);
+
         if (!heroe.estaVivo()) {
             resultado = ResultadoCombate.DERROTA;
             log.add("💀 " + heroe.getNombre() + " ha caído en combate...");

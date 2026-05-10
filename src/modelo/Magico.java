@@ -130,6 +130,46 @@ public abstract class Magico extends Heroe {
         return sb.toString().trim();
     }
 
+    // ── Habilidades mágicas adicionales (gancho para subclases) ─────────────
+
+    /**
+     * Ejecuta una habilidad mágica adicional (distinta de la habilidad especial).
+     * Las subclases sobreescriben este método para dar efecto a cada habilidad
+     * registrada en su catálogo.
+     *
+     * @param nombre   nombre de la habilidad a ejecutar
+     * @param objetivo personaje objetivo (enemigo o el propio héroe, según la habilidad)
+     * @return descripción del efecto producido, o {@code null} si la habilidad
+     *         no está reconocida o ya estaba activa
+     */
+    public String ejecutarHabilidadAdicional(String nombre, Personaje objetivo) {
+        return null;
+    }
+
+    /**
+     * Coste en PM de una habilidad mágica adicional.
+     * Las subclases sobreescriben este método para devolver el coste real.
+     * Un coste de 0 indica que la habilidad no tiene implementación activa aún.
+     *
+     * @param nombre nombre de la habilidad
+     * @return coste en PM (≥ 0)
+     */
+    public int getCostePmHabilidad(String nombre) {
+        return 0;
+    }
+
+    /**
+     * Indica si una habilidad mágica adicional está actualmente activa
+     * (p. ej. el Escudo Arcano está levantado, la Bendición está en curso).
+     * Las subclases sobreescriben para reflejar su estado interno.
+     *
+     * @param nombre nombre de la habilidad
+     * @return {@code true} si la habilidad sigue activa
+     */
+    public boolean isHabilidadAdicionalActiva(String nombre) {
+        return false;
+    }
+
     // ── toString extendido ───────────────────────────────────────────────────
 
     @Override

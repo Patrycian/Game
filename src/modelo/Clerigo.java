@@ -8,6 +8,11 @@ package modelo;
  */
 public class Clerigo extends Magico {
 
+    // ── Bendición Sagrada ────────────────────────────────────────────────────
+    private static final int BONUS_DEF    = 8;
+    private static final int COSTE_BENDICION = 7;
+    private boolean bendicionActiva = false;
+
     public Clerigo(String nombre) {
         super(nombre,
               /*hp*/    100,
@@ -23,6 +28,53 @@ public class Clerigo extends Magico {
                 "Invoca un aura divina que aumenta temporalmente la defensa del clérigo.");
     }
 
+    // ── Reinicio de habilidades (inicio de cada fase) ────────────────────────
+
+    /**
+     * Además de reiniciar la habilidad especial, revierte el bonus de defensa
+     * de la Bendición Sagrada si estaba activa, para no acumular bonuses entre fases.
+     */
+    @Override
+    public void reiniciarHabilidad() {
+        super.reiniciarHabilidad();
+        desactivarBendicion();
+    }
+
+    private void desactivarBendicion() {
+        if (bendicionActiva) {
+            bendicionActiva = false;
+            setDefensa(getDefensa() - BONUS_DEF);
+        }
+    }
+
+    // ── Habilidades mágicas adicionales ──────────────────────────────────────
+
+    @Override
+    public String ejecutarHabilidadAdicional(String nombre, Personaje objetivo) {
+        if ("Bendición Sagrada".equals(nombre)) {
+            if (bendicionActiva) {
+                return "⚠ La Bendición Sagrada ya está activa. (DEF: " + getDefensa() + ")";
+            }
+            bendicionActiva = true;
+            setDefensa(getDefensa() + BONUS_DEF);
+            return String.format("✝️ ¡Bendición Sagrada! %s invoca un aura divina."
+                    + " Defensa aumentada en %d. (DEF: %d)", getNombre(), BONUS_DEF, getDefensa());
+        }
+        return null;
+    }
+
+    @Override
+    public int getCostePmHabilidad(String nombre) {
+        return "Bendición Sagrada".equals(nombre) ? COSTE_BENDICION : 0;
+    }
+
+    @Override
+    public boolean isHabilidadAdicionalActiva(String nombre) {
+        return "Bendición Sagrada".equals(nombre) && bendicionActiva;
+    }
+
+    // ── Tipo, icono e imagen ──────────────────────────────────────────────────
+
     @Override
     public String getTipo()  { return "CLERIGO"; }
 
@@ -31,6 +83,8 @@ public class Clerigo extends Magico {
 
     @Override
     public String getRutaImagen() { return "/recursos/imagen/clerigo.png"; }
+
+    // ── Habilidad especial ────────────────────────────────────────────────────
 
     /**
      * Curación Divina: el Clérigo se cura a sí mismo (el objetivo en este caso
