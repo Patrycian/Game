@@ -3,6 +3,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.geometry.*?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml"
@@ -49,7 +50,8 @@
                     <padding><Insets top="0" right="40" bottom="20" left="40"/></padding>
 
                     <StackPane prefWidth="160" prefHeight="160" styleClass="plataforma-heroe">
-                        <Label fx:id="lblIconoHeroe" styleClass="sprite-combatiente" text="HERO"/>
+                        <ImageView fx:id="imgHeroe" fitWidth="120" fitHeight="120"
+                                   preserveRatio="true" StackPane.alignment="CENTER"/>
                     </StackPane>
 
                     <Region HBox.hgrow="ALWAYS"/>
@@ -68,6 +70,18 @@
                         <HBox alignment="CENTER_RIGHT">
                             <Label fx:id="lblHpHeroe" styleClass="info-pokemon-hp-num"
                                    text="-/- HP"/>
+                        </HBox>
+                        <!-- Barra de PM: solo visible en personajes mágicos -->
+                        <HBox fx:id="filaPm" alignment="CENTER_LEFT" spacing="8"
+                              visible="false" managed="false">
+                            <Label styleClass="info-pokemon-pm-label" text="PM"/>
+                            <ProgressBar fx:id="barraPoderMagico" prefWidth="200" prefHeight="10"
+                                         progress="1.0" styleClass="barra-pm-pokemon"/>
+                        </HBox>
+                        <HBox fx:id="filaNumPm" alignment="CENTER_RIGHT"
+                              visible="false" managed="false">
+                            <Label fx:id="lblPmHeroe" styleClass="info-pokemon-hp-num"
+                                   text="-/- PM"/>
                         </HBox>
                     </VBox>
                 </HBox>
@@ -106,34 +120,63 @@
 
             <Rectangle styleClass="separador-arena" width="2" height="180"/>
 
-            <VBox fx:id="menuBatalla" spacing="6" alignment="CENTER" prefWidth="240" minWidth="220">
-                <padding><Insets top="10" right="16" bottom="10" left="14"/></padding>
+            <!-- Panel derecho: menú principal y submenú de magia (mutuamente excluyentes) -->
+            <StackPane prefWidth="240" minWidth="220">
 
-                <Button fx:id="btnAtacar"
-                        styleClass="btn-batalla-barra"
-                        text="ATAQUE"
-                        onAction="#handleAtacar"
-                        maxWidth="Infinity" prefHeight="36" minHeight="32"
-                        VBox.vgrow="ALWAYS"/>
-                <Button fx:id="btnObjetos"
-                        styleClass="btn-batalla-barra"
-                        text="OBJETOS"
-                        onAction="#handleObjetos"
-                        maxWidth="Infinity" prefHeight="36" minHeight="32"
-                        VBox.vgrow="ALWAYS"/>
-                <Button fx:id="btnHabilidad"
-                        styleClass="btn-batalla-barra"
-                        text="HABILIDAD"
-                        onAction="#handleHabilidad"
-                        maxWidth="Infinity" prefHeight="36" minHeight="32"
-                        VBox.vgrow="ALWAYS"/>
-                <Button fx:id="btnHuir"
-                        styleClass="btn-batalla-barra-huir"
-                        text="HUIDA"
-                        onAction="#handleHuir"
-                        maxWidth="Infinity" prefHeight="36" minHeight="32"
-                        VBox.vgrow="ALWAYS"/>
-            </VBox>
+                <!-- Menú principal de batalla -->
+                <VBox fx:id="menuBatalla" spacing="6" alignment="CENTER">
+                    <padding><Insets top="10" right="16" bottom="10" left="14"/></padding>
+
+                    <Button fx:id="btnAtacar"
+                            styleClass="btn-batalla-barra"
+                            text="ATAQUE"
+                            onAction="#handleAtacar"
+                            maxWidth="Infinity" prefHeight="36" minHeight="32"
+                            VBox.vgrow="ALWAYS"/>
+                    <Button fx:id="btnObjetos"
+                            styleClass="btn-batalla-barra"
+                            text="OBJETOS"
+                            onAction="#handleObjetos"
+                            maxWidth="Infinity" prefHeight="36" minHeight="32"
+                            VBox.vgrow="ALWAYS"/>
+                    <Button fx:id="btnHabilidad"
+                            styleClass="btn-batalla-barra"
+                            text="HABILIDAD"
+                            onAction="#handleHabilidad"
+                            maxWidth="Infinity" prefHeight="36" minHeight="32"
+                            VBox.vgrow="ALWAYS"/>
+                    <Button fx:id="btnMagia"
+                            styleClass="btn-batalla-barra"
+                            text="✨ MAGIA"
+                            onAction="#handleMagia"
+                            maxWidth="Infinity" prefHeight="36" minHeight="32"
+                            VBox.vgrow="ALWAYS"
+                            visible="false" managed="false"/>
+                    <Button fx:id="btnHuir"
+                            styleClass="btn-batalla-barra-huir"
+                            text="HUIDA"
+                            onAction="#handleHuir"
+                            maxWidth="Infinity" prefHeight="36" minHeight="32"
+                            VBox.vgrow="ALWAYS"/>
+                </VBox>
+
+                <!-- Submenú de magia (inicialmente oculto) -->
+                <VBox fx:id="menuMagia" spacing="6" alignment="CENTER"
+                      visible="false" managed="false">
+                    <padding><Insets top="10" right="16" bottom="10" left="14"/></padding>
+
+                    <Label text="✨  MAGIA" styleClass="dialogo-prompt"/>
+
+                    <!-- Botones de habilidades mágicas añadidos dinámicamente -->
+                    <VBox fx:id="contenedorHabilidades" spacing="6" VBox.vgrow="ALWAYS"/>
+
+                    <Button styleClass="btn-batalla-barra-huir"
+                            text="← Volver"
+                            onAction="#handleVolverMenu"
+                            maxWidth="Infinity" prefHeight="36" minHeight="32"/>
+                </VBox>
+
+            </StackPane>
         </HBox>
 
     </VBox>

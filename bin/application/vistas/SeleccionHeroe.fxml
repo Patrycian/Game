@@ -3,6 +3,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.geometry.*?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml"
@@ -28,7 +29,9 @@
                   spacing="12" prefWidth="220" minHeight="310"
                   onMouseClicked="#handleSeleccionarMago">
                 <padding><Insets top="22" right="18" bottom="22" left="18"/></padding>
-                <Label styleClass="card-icono" text="🧙"/>
+                <ImageView fitWidth="80" fitHeight="80" preserveRatio="true">
+                    <image><Image url="@../../recursos/imagen/mago.png"/></image>
+                </ImageView>
                 <Label styleClass="card-nombre" text="MAGO"/>
                 <Label styleClass="card-descripcion" wrapText="true" textAlignment="CENTER"
                        text="Domina las artes arcanas. Alto poder mágico pero frágil en combate cuerpo a cuerpo."/>
@@ -47,7 +50,9 @@
                   spacing="12" prefWidth="220" minHeight="310"
                   onMouseClicked="#handleSeleccionarGuerrero">
                 <padding><Insets top="22" right="18" bottom="22" left="18"/></padding>
-                <Label styleClass="card-icono" text="⚔️"/>
+                <ImageView fitWidth="80" fitHeight="80" preserveRatio="true">
+                    <image><Image url="@../../recursos/imagen/guerrero.png"/></image>
+                </ImageView>
                 <Label styleClass="card-nombre" text="GUERRERO"/>
                 <Label styleClass="card-descripcion" wrapText="true" textAlignment="CENTER"
                        text="Equilibrado y resistente. Domina el combate cuerpo a cuerpo con fuerza bruta."/>
@@ -66,7 +71,9 @@
                   spacing="12" prefWidth="220" minHeight="310"
                   onMouseClicked="#handleSeleccionarClerigo">
                 <padding><Insets top="22" right="18" bottom="22" left="18"/></padding>
-                <Label styleClass="card-icono" text="✝️"/>
+                <ImageView fitWidth="80" fitHeight="80" preserveRatio="true">
+                    <image><Image url="@../../recursos/imagen/clerigo.png"/></image>
+                </ImageView>
                 <Label styleClass="card-nombre" text="CLÉRIGO"/>
                 <Label styleClass="card-descripcion" wrapText="true" textAlignment="CENTER"
                        text="Soporte divino. Aguante moderado y la capacidad de curarse en el momento clave."/>

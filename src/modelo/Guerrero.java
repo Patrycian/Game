@@ -21,6 +21,9 @@ public class Guerrero extends Heroe {
     @Override
     public String getIcono() { return "⚔️"; }
 
+    @Override
+    public String getRutaImagen() { return "/recursos/imagen/guerrero.png"; }
+
     /**
      * Golpe Devastador: calcula daño con poder × 1.5, descontando defensa del objetivo.
      */

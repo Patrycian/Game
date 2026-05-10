@@ -576,6 +576,34 @@
     -fx-scale-y: 0.97;
 }
 
+/* ── Etiqueta de PM (poder mágico) ──────────────────────────── */
+.info-pokemon-pm-label {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #9a8fe0;
+}
+
+/* ── Barra de PM (poder mágico) — tono morado/arcano ─────────── */
+.barra-pm-pokemon {
+    -fx-background-color: #0a0a0f;
+    -fx-border-color: #3a3050;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.barra-pm-pokemon .bar {
+    -fx-background-color: #7c6fcd;
+    -fx-background-radius: 5;
+    -fx-padding: 0;
+}
+
+.barra-pm-pokemon .track {
+    -fx-background-color: #0a0a0f;
+    -fx-background-radius: 5;
+}
+
 /* ── ScrollPane sin decoracion ───────────────────────────────── */
 .scroll-ranking {
     -fx-background-color: transparent;

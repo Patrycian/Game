@@ -18,6 +18,8 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -44,7 +46,7 @@ public class MazmorraController implements Initializable {
     @FXML private ProgressBar barraVidaHeroe;
     @FXML private Label       lblNombreEnemigo;
     @FXML private ProgressBar barraVidaEnemigo;
-    @FXML private Label       lblIconoHeroe;
+    @FXML private ImageView   imgHeroe;
     @FXML private Label       lblIconoEnemigo;
 
     // ── FXML: caja de diálogo y menú ─────────────────────────────────────────
@@ -55,8 +57,19 @@ public class MazmorraController implements Initializable {
     @FXML private Button      btnAtacar;
     @FXML private Button      btnObjetos;
     @FXML private Button      btnHabilidad;
+    @FXML private Button      btnMagia;          // solo visible para personajes Magico
     @FXML private Button      btnHuir;
     @FXML private Button      btnContinuar;
+
+    // ── FXML: submenú de magia ────────────────────────────────────────────────
+    @FXML private VBox        menuMagia;
+    @FXML private VBox        contenedorHabilidades;
+
+    // ── FXML: barra de PM (solo visible en personajes Magico) ─────────────────
+    @FXML private HBox        filaPm;
+    @FXML private HBox        filaNumPm;
+    @FXML private ProgressBar barraPoderMagico;
+    @FXML private Label       lblPmHeroe;
 
     // ── Estado ────────────────────────────────────────────────────────────────
     private GameSession  sesion;
@@ -86,6 +99,7 @@ public class MazmorraController implements Initializable {
         Enemigo enemigo = MotorCombate.generarEnemigo(fase);
 
         heroe.reiniciarHabilidad();   // la habilidad especial se recarga entre fases
+        if (heroe instanceof Magico) ((Magico) heroe).restaurarPm(); // PM al máximo cada fase
         motor = new MotorCombate(heroe, enemigo);
         combateTerminado = false;
         pocionesRestantes = 3;        // 3 pociones por combate
@@ -95,7 +109,13 @@ public class MazmorraController implements Initializable {
 
         // ── Héroe
         lblNombreHeroe.setText(heroe.getNombre() + " (" + heroe.getTipo() + ")");
-        lblIconoHeroe.setText(heroe.getIcono());
+        try {
+            Image imgSrc = new Image(getClass().getResourceAsStream(heroe.getRutaImagen()));
+            imgHeroe.setImage(imgSrc);
+        } catch (Exception e) {
+            // Si la imagen no carga, no bloquea el juego
+            e.printStackTrace();
+        }
         actualizarBarraHeroe();
 
         // ── Enemigo
@@ -103,9 +123,34 @@ public class MazmorraController implements Initializable {
         lblIconoEnemigo.setText(enemigo.getIcono());
         actualizarBarraEnemigo();
 
-        // ── Habilidad especial
-        btnHabilidad.setText("✨ " + heroe.getNombreHabilidad().toUpperCase());
-        btnHabilidad.setDisable(false);
+        // ── Habilidad especial / Magia
+        // Para héroes Mágicos se muestra el botón MAGIA (submenú) en lugar de HABILIDAD directo
+        boolean esMagico = heroe instanceof Magico;
+        btnHabilidad.setVisible(!esMagico);
+        btnHabilidad.setManaged(!esMagico);
+        btnMagia.setVisible(esMagico);
+        btnMagia.setManaged(esMagico);
+
+        if (esMagico) {
+            btnMagia.setDisable(false);
+            construirSubmenuMagia((Magico) heroe);
+        } else {
+            btnHabilidad.setText("✨ " + heroe.getNombreHabilidad().toUpperCase());
+            btnHabilidad.setDisable(false);
+        }
+
+        // Aseguramos que el submenú empiece oculto
+        if (menuMagia != null) {
+            menuMagia.setVisible(false);
+            menuMagia.setManaged(false);
+        }
+
+        // ── Barra de PM: solo para personajes mágicos
+        filaPm.setVisible(esMagico);
+        filaPm.setManaged(esMagico);
+        filaNumPm.setVisible(esMagico);
+        filaNumPm.setManaged(esMagico);
+        if (esMagico) actualizarBarraPm();
 
         // ── Objetos
         actualizarTextoBotonObjetos();
@@ -224,6 +269,12 @@ public class MazmorraController implements Initializable {
         switch (accion) {
             case ATAQUE:
             case HABILIDAD: {
+                // Si es un personaje mágico usando su habilidad, consume PM
+                if (accion == AccionHeroe.HABILIDAD && sesion.getHeroe() instanceof Magico) {
+                    Magico m = (Magico) sesion.getHeroe();
+                    int coste = Math.max(1, m.getPmMax() / 2);
+                    m.gastarPm(coste);
+                }
                 List<String> mensajes = motor.ejecutarTurnoHeroe(accion == AccionHeroe.HABILIDAD);
                 mensajes.forEach(this::agregarLog);
 
@@ -235,7 +286,7 @@ public class MazmorraController implements Initializable {
                 // Si el enemigo sobrevivio, contraataco -> el heroe recibe el golpe
                 if (motor.getEnemigo().estaVivo()) {
                     PauseTransition espera = new PauseTransition(Duration.millis(350));
-                    espera.setOnFinished(ev -> animarGolpe(lblIconoHeroe));
+                    espera.setOnFinished(ev -> animarGolpe(imgHeroe));
                     espera.play();
                 }
                 break;
@@ -256,7 +307,7 @@ public class MazmorraController implements Initializable {
                 if (enemigo.estaVivo()) {
                     String ataqueEnemigo = enemigo.realizarAtaque(h);
                     agregarLog(ataqueEnemigo);
-                    animarGolpe(lblIconoHeroe);  // el heroe recibe el contraataque
+                    animarGolpe(imgHeroe);  // el heroe recibe el contraataque
                     if (!h.estaVivo()) {
                         // Forzamos derrota a través del motor para coherencia de estado
                         // (el motor ya se actualizará en la siguiente acción si llegase)
@@ -274,6 +325,7 @@ public class MazmorraController implements Initializable {
 
         actualizarBarraHeroe();
         actualizarBarraEnemigo();
+        if (sesion.getHeroe() instanceof Magico) actualizarBarraPm();
 
         // Determinar si el combate terminó (motor o muerte por contraataque)
         ResultadoCombate resultado = motor.getResultado();
@@ -291,8 +343,11 @@ public class MazmorraController implements Initializable {
     private void procesarFinCombate(ResultadoCombate resultado) {
         btnAtacar.setDisable(true);
         btnHabilidad.setDisable(true);
+        btnMagia.setDisable(true);
         btnObjetos.setDisable(true);
         btnHuir.setDisable(true);
+        // Si el submenú de magia estaba abierto, volvemos al menú principal
+        if (menuMagia != null && menuMagia.isVisible()) handleVolverMenu();
 
         boolean victoria = resultado == ResultadoCombate.VICTORIA;
 
@@ -348,6 +403,91 @@ public class MazmorraController implements Initializable {
         if (btnContinuar != null) {
             btnContinuar.setVisible(true);
             btnContinuar.setManaged(true);
+        }
+    }
+
+    // ── Submenú de Magia ──────────────────────────────────────────────────────
+
+    /**
+     * Abre el submenú de magia, reconstruyendo los botones según el estado actual
+     * del personaje (p. ej. habilidad ya usada o no).
+     */
+    @FXML
+    private void handleMagia() {
+        if (combateTerminado) return;
+        construirSubmenuMagia((Magico) sesion.getHeroe());
+        menuBatalla.setVisible(false);
+        menuBatalla.setManaged(false);
+        menuMagia.setVisible(true);
+        menuMagia.setManaged(true);
+    }
+
+    /**
+     * Cierra el submenú de magia y vuelve al menú principal de batalla.
+     */
+    @FXML
+    private void handleVolverMenu() {
+        menuMagia.setVisible(false);
+        menuMagia.setManaged(false);
+        menuBatalla.setVisible(true);
+        menuBatalla.setManaged(true);
+    }
+
+    /**
+     * Construye dinámicamente los botones del submenú de magia a partir de las
+     * habilidades registradas en el personaje {@link Magico}.
+     * <ul>
+     *   <li>La habilidad especial (la que coincide con {@code getNombreHabilidad()})
+     *       es activable si aún no se ha usado en este combate.</li>
+     *   <li>El resto de habilidades mágicas se muestran bloqueadas (son informativas
+     *       o pasivas y no tienen acción de combate directa por ahora).</li>
+     * </ul>
+     */
+    private void construirSubmenuMagia(Magico magico) {
+        contenedorHabilidades.getChildren().clear();
+
+        String  nombreEspecial    = magico.getNombreHabilidad();
+        boolean habilidadYaUsada  = magico.isHabilidadUsada();
+
+        for (String[] h : magico.getHabilidadesMagicas()) {
+            String  nombre     = h[0];
+            String  descripcion = h[1];
+            boolean esEspecial = nombre.equals(nombreEspecial);
+
+            Button btn = new Button();
+            btn.getStyleClass().add("btn-batalla-barra");
+            btn.setMaxWidth(Double.MAX_VALUE);
+            btn.setPrefHeight(36);
+            btn.setMinHeight(32);
+            VBox.setVgrow(btn, javafx.scene.layout.Priority.ALWAYS);
+
+            Tooltip tip = new Tooltip(descripcion);
+            tip.setWrapText(true);
+            tip.setMaxWidth(210);
+            btn.setTooltip(tip);
+
+            if (esEspecial && !habilidadYaUsada) {
+                // Habilidad especial disponible → la activa y vuelve al menú
+                btn.setText("✨ " + nombre.toUpperCase());
+                btn.setOnAction(e -> {
+                    handleVolverMenu();
+                    ejecutarTurno(AccionHeroe.HABILIDAD);
+                });
+            } else if (esEspecial) {
+                // Ya usada este combate
+                btn.setText("✨ " + nombre.toUpperCase() + "  (usada)");
+                btn.setDisable(true);
+            } else {
+                // Habilidad pasiva / no usable directamente en combate
+                btn.setText("🔒 " + nombre.toUpperCase());
+                Tooltip tipBloq = new Tooltip(descripcion + "\n\n(Habilidad pasiva — no disponible en combate directo)");
+                tipBloq.setWrapText(true);
+                tipBloq.setMaxWidth(210);
+                btn.setTooltip(tipBloq);
+                btn.setDisable(true);
+            }
+
+            contenedorHabilidades.getChildren().add(btn);
         }
     }
 
@@ -430,6 +570,20 @@ public class MazmorraController implements Initializable {
         barraVidaHeroe.setProgress(pct);
         lblHpHeroe.setText(h.getPuntosGolpe() + " / " + h.getPuntosGolpeMax() + " HP");
         colorearBarra(barraVidaHeroe, pct);
+    }
+
+    /**
+     * Refresca la barra y el texto de PM del héroe mágico.
+     * El color pasa de morado brillante → morado oscuro al bajar del 30 %.
+     */
+    private void actualizarBarraPm() {
+        if (!(sesion.getHeroe() instanceof Magico)) return;
+        Magico m = (Magico) sesion.getHeroe();
+        double pct = m.getPorcentajePm();
+        barraPoderMagico.setProgress(pct);
+        lblPmHeroe.setText(m.getPm() + " / " + m.getPmMax() + " PM");
+        String color = pct > 0.3 ? "#7c6fcd" : "#4a3d8f";
+        barraPoderMagico.setStyle("-fx-accent: " + color + ";");
     }
 
     private void actualizarBarraEnemigo() {
