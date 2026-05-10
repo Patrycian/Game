@@ -180,6 +180,32 @@
                             maxWidth="Infinity" prefHeight="36" minHeight="32"/>
                 </VBox>
 
+                <!-- Submenú de objetos (inicialmente oculto) -->
+                <VBox fx:id="menuObjetos" spacing="6" alignment="CENTER"
+                      visible="false" managed="false">
+                    <padding><Insets top="10" right="16" bottom="10" left="14"/></padding>
+
+                    <Label text="🎒  OBJETOS" styleClass="dialogo-prompt"/>
+
+                    <Button fx:id="btnPocionCuracion"
+                            styleClass="btn-batalla-barra"
+                            text="🧪 POCIÓN DE CURACIÓN"
+                            onAction="#handleUsarPocionCuracion"
+                            maxWidth="Infinity" prefHeight="36" minHeight="32"
+                            VBox.vgrow="ALWAYS"/>
+                    <Button fx:id="btnPocionMagica"
+                            styleClass="btn-batalla-barra"
+                            text="🔮 POCIÓN MÁGICA"
+                            onAction="#handleUsarPocionMagica"
+                            maxWidth="Infinity" prefHeight="36" minHeight="32"
+                            VBox.vgrow="ALWAYS"/>
+
+                    <Button styleClass="btn-batalla-barra-huir"
+                            text="← Volver"
+                            onAction="#handleVolverMenuObjetos"
+                            maxWidth="Infinity" prefHeight="36" minHeight="32"/>
+                </VBox>
+
             </StackPane>
         </HBox>
 

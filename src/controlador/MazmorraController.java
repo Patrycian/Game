@@ -66,6 +66,11 @@ public class MazmorraController implements Initializable {
     @FXML private VBox        menuMagia;
     @FXML private VBox        contenedorHabilidades;
 
+    // ── FXML: submenú de objetos ──────────────────────────────────────────────
+    @FXML private VBox        menuObjetos;
+    @FXML private Button      btnPocionCuracion;
+    @FXML private Button      btnPocionMagica;
+
     // ── FXML: barra de PM (solo visible en personajes Magico) ─────────────────
     @FXML private HBox        filaPm;
     @FXML private HBox        filaNumPm;
@@ -144,10 +149,14 @@ public class MazmorraController implements Initializable {
             btnHabilidad.setDisable(false);
         }
 
-        // Aseguramos que el submenú empiece oculto
+        // Aseguramos que los submenús empiecen ocultos
         if (menuMagia != null) {
             menuMagia.setVisible(false);
             menuMagia.setManaged(false);
+        }
+        if (menuObjetos != null) {
+            menuObjetos.setVisible(false);
+            menuObjetos.setManaged(false);
         }
 
         // ── Barra de PM: solo para personajes mágicos
@@ -212,42 +221,15 @@ public class MazmorraController implements Initializable {
     @FXML
     private void handleObjetos() {
         if (combateTerminado) return;
-
         if (pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0) {
             agregarLog("🎒 No te quedan objetos.");
             return;
         }
-
-        // Construimos los botones disponibles según el stock actual
-        ButtonType btnCuracion = new ButtonType(
-                "🧪 Poción de curación  ×" + pocionesRestantes
-                + "  (+" + CURACION_POCION + " HP)",
-                javafx.scene.control.ButtonBar.ButtonData.LEFT);
-        ButtonType btnMagica = new ButtonType(
-                "🔮 Poción mágica  ×" + pocionesMagicasRestantes
-                + "  (+" + RESTAURACION_PM_POCION + " PM)",
-                javafx.scene.control.ButtonBar.ButtonData.RIGHT);
-
-        Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setTitle("Objetos");
-        alert.setHeaderText("🎒  ¿Qué objeto quieres usar?");
-
-        if (pocionesRestantes    > 0) alert.getButtonTypes().add(btnCuracion);
-        if (pocionesMagicasRestantes > 0) alert.getButtonTypes().add(btnMagica);
-        alert.getButtonTypes().add(ButtonType.CANCEL);
-
-        alert.getDialogPane().getStylesheets().add(
-                getClass().getResource("/application/vistas/estilos.css").toExternalForm());
-        alert.getDialogPane().getStyleClass().add("dialog-oscuro");
-
-        Optional<ButtonType> resp = alert.showAndWait();
-        if (!resp.isPresent()) return;
-
-        if (resp.get() == btnCuracion) {
-            ejecutarTurno(AccionHeroe.POCION);
-        } else if (resp.get() == btnMagica) {
-            ejecutarTurno(AccionHeroe.POCION_MAGICA);
-        }
+        actualizarSubmenuObjetos();
+        menuBatalla.setVisible(false);
+        menuBatalla.setManaged(false);
+        menuObjetos.setVisible(true);
+        menuObjetos.setManaged(true);
     }
 
     @FXML
@@ -404,8 +386,9 @@ public class MazmorraController implements Initializable {
         btnMagia.setDisable(true);
         btnObjetos.setDisable(true);
         btnHuir.setDisable(true);
-        // Si el submenú de magia estaba abierto, volvemos al menú principal
-        if (menuMagia != null && menuMagia.isVisible()) handleVolverMenu();
+        // Si algún submenú estaba abierto, volvemos al menú principal
+        if (menuMagia    != null && menuMagia.isVisible())    handleVolverMenu();
+        if (menuObjetos  != null && menuObjetos.isVisible())  handleVolverMenuObjetos();
 
         boolean victoria = resultado == ResultadoCombate.VICTORIA;
 
@@ -570,6 +553,55 @@ public class MazmorraController implements Initializable {
             }
 
             contenedorHabilidades.getChildren().add(btn);
+        }
+    }
+
+    // ── Submenú de Objetos ────────────────────────────────────────────────────
+
+    /** Cierra el submenú de objetos y vuelve al menú principal de batalla. */
+    @FXML
+    private void handleVolverMenuObjetos() {
+        menuObjetos.setVisible(false);
+        menuObjetos.setManaged(false);
+        menuBatalla.setVisible(true);
+        menuBatalla.setManaged(true);
+    }
+
+    /** Usa una poción de curación desde el submenú de objetos. */
+    @FXML
+    private void handleUsarPocionCuracion() {
+        handleVolverMenuObjetos();
+        ejecutarTurno(AccionHeroe.POCION);
+    }
+
+    /** Usa una poción mágica desde el submenú de objetos. */
+    @FXML
+    private void handleUsarPocionMagica() {
+        handleVolverMenuObjetos();
+        ejecutarTurno(AccionHeroe.POCION_MAGICA);
+    }
+
+    /**
+     * Actualiza el texto y el estado (habilitado/deshabilitado) de los botones
+     * del submenú de objetos según el stock actual.
+     */
+    private void actualizarSubmenuObjetos() {
+        if (pocionesRestantes > 0) {
+            btnPocionCuracion.setText("🧪 POCIÓN DE CURACIÓN  ×" + pocionesRestantes
+                    + "  (+" + CURACION_POCION + " HP)");
+            btnPocionCuracion.setDisable(false);
+        } else {
+            btnPocionCuracion.setText("🧪 POCIÓN DE CURACIÓN  (agotadas)");
+            btnPocionCuracion.setDisable(true);
+        }
+
+        if (pocionesMagicasRestantes > 0) {
+            btnPocionMagica.setText("🔮 POCIÓN MÁGICA  ×" + pocionesMagicasRestantes
+                    + "  (+" + RESTAURACION_PM_POCION + " PM)");
+            btnPocionMagica.setDisable(false);
+        } else {
+            btnPocionMagica.setText("🔮 POCIÓN MÁGICA  (agotadas)");
+            btnPocionMagica.setDisable(true);
         }
     }
 
