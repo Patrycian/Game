@@ -6,7 +6,6 @@ package modelo;
  */
 public abstract class Heroe extends Personaje {
 
-	private boolean habilidadUsada; // la habilidad especial se agota por combate
 	private String nombreHabilidad;
 	private String descHabilidad;
 
@@ -22,24 +21,18 @@ public abstract class Heroe extends Personaje {
 		super(nombre, puntosGolpe, defensa, poder);
 		this.nombreHabilidad = nombreHabilidad;
 		this.descHabilidad = descHabilidad;
-		this.habilidadUsada = false;
 	}
 
 	// ── Habilidad especial ────────────────────────────────────────────────────
 
 	/**
-	 * Intenta activar la habilidad especial del héroe. Si ya fue usada en este
-	 * combate, no tiene efecto y devuelve null.
+	 * Activa la habilidad especial del héroe sobre el objetivo indicado.
 	 *
 	 * @param objetivo el personaje sobre el que se aplica (puede ser el enemigo o
 	 *                 él mismo)
-	 * @return descripción de lo que ocurrió, o null si la habilidad ya estaba
-	 *         gastada
+	 * @return descripción de lo que ocurrió
 	 */
 	public final String usarHabilidad(Personaje objetivo) {
-		if (habilidadUsada)
-			return null;
-		habilidadUsada = true;
 		return aplicarHabilidad(objetivo);
 	}
 
@@ -49,14 +42,12 @@ public abstract class Heroe extends Personaje {
 	 */
 	protected abstract String aplicarHabilidad(Personaje objetivo);
 
-	/** Reinicia la habilidad para un nuevo combate. */
-	public void reiniciarHabilidad() {
-		habilidadUsada = false;
-	}
-
-	public boolean isHabilidadUsada() {
-		return habilidadUsada;
-	}
+	/**
+	 * Gancho que se llama al inicio de cada nueva fase.
+	 * La implementación base no hace nada; las subclases pueden sobreescribirlo
+	 * para revertir efectos temporales (p. ej. Bendición Sagrada del Clérigo).
+	 */
+	public void reiniciarHabilidad() { }
 
 	public String getNombreHabilidad() {
 		return nombreHabilidad;

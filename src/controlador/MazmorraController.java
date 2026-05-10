@@ -84,12 +84,12 @@ public class MazmorraController implements Initializable {
     private MediaPlayer mediaPlayer;
 
     // ── Inventario simple del combate ────────────────────────────────────────
-    /** Pociones de curación (se reinician cada fase). */
-    private int pocionesRestantes = 3;
+    /** Pociones de curación: persisten entre fases (se asignan en iniciarSesion). */
+    private int pocionesRestantes;
     private static final int CURACION_POCION = 30;
 
-    /** Pociones mágicas (se reinician cada fase; los PM NO se reinician). */
-    private int pocionesMagicasRestantes = 2;
+    /** Pociones mágicas: persisten entre fases (se asignan en iniciarSesion). */
+    private int pocionesMagicasRestantes;
     private static final int RESTAURACION_PM_POCION = 10;
 
     @Override
@@ -98,6 +98,9 @@ public class MazmorraController implements Initializable {
     /** Punto de entrada: recibe la sesión del controlador anterior. */
     public void iniciarSesion(GameSession sesion) {
         this.sesion = sesion;
+        // El inventario se inicializa aquí, una sola vez para toda la partida
+        pocionesRestantes        = 3;
+        pocionesMagicasRestantes = 2;
         prepararCombate();
     }
 
@@ -111,8 +114,6 @@ public class MazmorraController implements Initializable {
         heroe.reiniciarHabilidad();   // la habilidad especial se recarga entre fases
         motor = new MotorCombate(heroe, enemigo);
         combateTerminado = false;
-        pocionesRestantes        = 3; // 3 pociones de curación por fase
-        pocionesMagicasRestantes = 2; // 2 pociones mágicas por fase
 
         // ── Labels de fase
         lblFase.setText("⚔  FASE " + fase + (fase == 4 ? "  —  JEFE FINAL" : "  —  MAZMORRA"));
@@ -159,17 +160,14 @@ public class MazmorraController implements Initializable {
             menuObjetos.setManaged(false);
         }
 
-        // ── Barra de PM: solo para personajes mágicos
+        // Barra de PM solo para personajes mágicos
         filaPm.setVisible(esMagico);
         filaPm.setManaged(esMagico);
         filaNumPm.setVisible(esMagico);
         filaNumPm.setManaged(esMagico);
         if (esMagico) actualizarBarraPm();
 
-        // ── Objetos
-        actualizarTextoBotonObjetos();
-
-        // ── UI inicial
+        // UI inicial
         txtLog.clear();
         agregarLog("¡Un " + enemigo.getNombre() + " salvaje apareció!");
         agregarLog("");
@@ -177,7 +175,7 @@ public class MazmorraController implements Initializable {
         agregarLog("");
 
         if (lblPrompt != null) {
-            lblPrompt.setText("¿Qué hará " + heroe.getNombre() + "?");
+            lblPrompt.setText("¿Qué acción realizará " + heroe.getNombre() + "?");
             lblPrompt.setVisible(true);
         }
 
@@ -195,7 +193,7 @@ public class MazmorraController implements Initializable {
         }
 
         btnAtacar.setDisable(false);
-        btnObjetos.setDisable(false);
+        btnObjetos.setDisable(pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0);
         btnHuir.setDisable(false);
         
         iniciarMusica(sesion.getFaseActual() == 4);
@@ -210,12 +208,7 @@ public class MazmorraController implements Initializable {
 
     @FXML
     private void handleHabilidad() {
-        if (sesion.getHeroe().isHabilidadUsada()) {
-            agregarLog("⚠ Habilidad ya utilizada en este combate.");
-            return;
-        }
         ejecutarTurno(AccionHeroe.HABILIDAD);
-        btnHabilidad.setDisable(true);  // sólo puede usarse una vez
     }
 
     @FXML
@@ -320,7 +313,6 @@ public class MazmorraController implements Initializable {
                     }
                 }
 
-                actualizarTextoBotonObjetos();
                 if (pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0)
                     btnObjetos.setDisable(true);
                 break;
@@ -354,7 +346,6 @@ public class MazmorraController implements Initializable {
                     }
                 }
 
-                actualizarTextoBotonObjetos();
                 if (pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0)
                     btnObjetos.setDisable(true);
                 break;
@@ -487,13 +478,12 @@ public class MazmorraController implements Initializable {
     private void construirSubmenuMagia(Magico magico) {
         contenedorHabilidades.getChildren().clear();
 
-        String  nombreEspecial    = magico.getNombreHabilidad();
-        boolean habilidadYaUsada  = magico.isHabilidadUsada();
+        String nombreEspecial = magico.getNombreHabilidad();
 
         for (String[] h : magico.getHabilidadesMagicas()) {
-            String  nombre     = h[0];
+            String  nombre      = h[0];
             String  descripcion = h[1];
-            boolean esEspecial = nombre.equals(nombreEspecial);
+            boolean esEspecial  = nombre.equals(nombreEspecial);
 
             Button btn = new Button();
             btn.getStyleClass().add("btn-batalla-barra");
@@ -507,17 +497,13 @@ public class MazmorraController implements Initializable {
             tip.setMaxWidth(210);
             btn.setTooltip(tip);
 
-            if (esEspecial && !habilidadYaUsada) {
-                // Habilidad especial disponible → la activa y vuelve al menú
+            if (esEspecial) {
+                // Habilidad especial: siempre disponible
                 btn.setText("✨ " + nombre.toUpperCase());
                 btn.setOnAction(e -> {
                     handleVolverMenu();
                     ejecutarTurno(AccionHeroe.HABILIDAD);
                 });
-            } else if (esEspecial) {
-                // Ya usada este combate
-                btn.setText("✨ " + nombre.toUpperCase() + "  (usada)");
-                btn.setDisable(true);
             } else {
                 // Habilidad adicional — se activa si tiene PM suficientes y no está ya activa
                 int     coste      = magico.getCostePmHabilidad(nombre);
@@ -587,8 +573,7 @@ public class MazmorraController implements Initializable {
      */
     private void actualizarSubmenuObjetos() {
         if (pocionesRestantes > 0) {
-            btnPocionCuracion.setText("🧪 POCIÓN DE CURACIÓN  ×" + pocionesRestantes
-                    + "  (+" + CURACION_POCION + " HP)");
+            btnPocionCuracion.setText("🧪 POCIÓN DE CURACIÓN  ×" + pocionesRestantes);
             btnPocionCuracion.setDisable(false);
         } else {
             btnPocionCuracion.setText("🧪 POCIÓN DE CURACIÓN  (agotadas)");
@@ -596,8 +581,7 @@ public class MazmorraController implements Initializable {
         }
 
         if (pocionesMagicasRestantes > 0) {
-            btnPocionMagica.setText("🔮 POCIÓN MÁGICA  ×" + pocionesMagicasRestantes
-                    + "  (+" + RESTAURACION_PM_POCION + " PM)");
+            btnPocionMagica.setText("🔮 POCIÓN MÁGICA  ×" + pocionesMagicasRestantes);
             btnPocionMagica.setDisable(false);
         } else {
             btnPocionMagica.setText("🔮 POCIÓN MÁGICA  (agotadas)");
@@ -764,13 +748,6 @@ public class MazmorraController implements Initializable {
     private void colorearBarra(ProgressBar barra, double pct) {
         String color = pct > 0.5 ? "#4caf50" : pct > 0.25 ? "#ff9800" : "#e05555";
         barra.setStyle("-fx-accent: " + color + ";");
-    }
-
-    private void actualizarTextoBotonObjetos() {
-        if (btnObjetos != null) {
-            btnObjetos.setText("🎒  OBJETOS  🧪" + pocionesRestantes
-                    + " 🔮" + pocionesMagicasRestantes);
-        }
     }
 
     private void agregarLog(String mensaje) {

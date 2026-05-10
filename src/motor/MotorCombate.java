@@ -59,17 +59,7 @@ public class MotorCombate {
         if (usarHabilidad) {
             // Para el Clérigo la habilidad se aplica sobre sí mismo; para el resto, sobre el enemigo
             Personaje objetivo = (heroe instanceof Clerigo) ? heroe : enemigo;
-            String efecto = heroe.usarHabilidad(objetivo);
-            if (efecto == null) {
-                // Habilidad ya usada → ataque normal
-                log.add("⚠ Habilidad ya utilizada. " + heroe.getNombre() + " ataca normalmente.");
-                int danio = enemigo.recibirAtaque(heroe);
-                log.add(String.format("%s %s ataca a %s causando %d de daño. (HP: %d/%d)",
-                        heroe.getIcono(), heroe.getNombre(), enemigo.getNombre(),
-                        danio, enemigo.getPuntosGolpe(), enemigo.getPuntosGolpeMax()));
-            } else {
-                log.add(efecto);
-            }
+            log.add(heroe.usarHabilidad(objetivo));
         } else {
             int danio = enemigo.recibirAtaque(heroe);
             log.add(String.format("%s %s ataca a %s causando %d de daño. (HP: %d/%d)",
