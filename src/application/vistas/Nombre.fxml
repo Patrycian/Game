@@ -24,15 +24,15 @@
         <Label styleClass="titulo-pantalla" text="NUEVA PARTIDA"/>
 
         <Label styleClass="subtitulo"
-               text="✦  Introduce tu nombre de comandante  ✦"/>
+               text="✦  Introduce tu nombre  ✦"/>
 
         <Rectangle styleClass="linea-decorativa" width="300" height="1"/>
 
         <Region prefHeight="2"/>
 
-        <Label styleClass="icono-central" text="🤖"/>
+        <!--<Label styleClass="icono-central" text="🤖"/> -->
 
-        <Label styleClass="label-campo" text="NOMBRE DEL COMANDANTE"/>
+        <Label styleClass="label-campo" text="NOMBRE"/>
 
         <TextField fx:id="txtNombre"
                    styleClass="campo-texto"
