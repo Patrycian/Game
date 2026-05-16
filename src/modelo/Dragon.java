@@ -60,16 +60,17 @@ public class Dragon extends Enemigo {
             int danio = getPoder() * 2;
             objetivo.setPuntosGolpe(Math.max(0, objetivo.getPuntosGolpe() - danio));
             return String.format(
-                    "🔥 ¡ALIENTO DE FUEGO! %s abrasa a %s causando %d puntos de daño devastador."
-                    + " (HP: %d | PM Dragón: %d/%d)",
-                    getNombre(), objetivo.getNombre(), danio, objetivo.getPuntosGolpe(),
+                    "🔥 ¡ALIENTO DE FUEGO!  →  -%d HP  [%s: %d/%d HP]  |  PM Dragón: %d/%d",
+                    danio, objetivo.getNombre(),
+                    objetivo.getPuntosGolpe(), objetivo.getPuntosGolpeMax(),
                     getPm(), getPmMax());
         } else {
             // ── Golpe de cola: ataque físico normal
             int danio = objetivo.recibirAtaque(this);
             return String.format(
-                    "🐉 %s golpea a %s con su cola causando %d puntos de daño. (HP: %d)",
-                    getNombre(), objetivo.getNombre(), danio, objetivo.getPuntosGolpe());
+                    "🐉 %s golpea con su cola  →  -%d HP  [%s: %d/%d HP]",
+                    getNombre(), danio,
+                    objetivo.getNombre(), objetivo.getPuntosGolpe(), objetivo.getPuntosGolpeMax());
         }
     }
 }

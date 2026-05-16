@@ -58,17 +58,17 @@ public class Saga extends Enemigo {
             int danio = (int) Math.round(getPoder() * 1.5);
             objetivo.setPuntosGolpe(Math.max(0, objetivo.getPuntosGolpe() - danio));
             return String.format(
-                    "🌑 ¡Maldición de Oscuridad! La Saga lanza un hechizo devastador sobre %s"
-                    + " causando %d puntos de daño mágico puro. (HP: %d | PM Saga: %d/%d)",
-                    objetivo.getNombre(), danio, objetivo.getPuntosGolpe(),
+                    "🌑 ¡MALDICIÓN DE OSCURIDAD!  →  -%d HP  [%s: %d/%d HP]  |  PM Saga: %d/%d",
+                    danio, objetivo.getNombre(),
+                    objetivo.getPuntosGolpe(), objetivo.getPuntosGolpeMax(),
                     getPm(), getPmMax());
         } else {
             // ── Ataque mágico básico (reducido por defensa)
             int danio = objetivo.recibirAtaque(this);
             return String.format(
-                    "🧟 La Saga Oscura lanza un hechizo sobre %s causando %d puntos de daño mágico."
-                    + " (HP: %d)",
-                    objetivo.getNombre(), danio, objetivo.getPuntosGolpe());
+                    "🧟 Saga lanza un hechizo  →  -%d HP  [%s: %d/%d HP]",
+                    danio, objetivo.getNombre(),
+                    objetivo.getPuntosGolpe(), objetivo.getPuntosGolpeMax());
         }
     }
 }

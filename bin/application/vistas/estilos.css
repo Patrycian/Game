@@ -488,11 +488,12 @@
 .log-combate-pokemon {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-text-fill: #e8e0d0;
+    -fx-text-fill: #ddd8c8;
     -fx-font-family: "Courier New";
-    -fx-font-size: 12px;
+    -fx-font-size: 13px;
     -fx-control-inner-background: #0d0d16;
     -fx-highlight-fill: #2e2840;
+    -fx-padding: 6 10 6 10;
 }
 
 .log-combate-pokemon .content {
@@ -505,6 +506,17 @@
 
 .log-combate-pokemon .viewport {
     -fx-background-color: #0d0d16;
+}
+
+.log-combate-pokemon .scroll-bar:vertical {
+    -fx-background-color: #0d0d16;
+    -fx-border-color: #1e1e2e;
+    -fx-pref-width: 6px;
+}
+
+.log-combate-pokemon .scroll-bar:vertical .thumb {
+    -fx-background-color: #3a3050;
+    -fx-background-radius: 3;
 }
 
 /* ── Botones del menu de batalla 2x2 ─────────────────────────── */
@@ -594,6 +606,26 @@
 }
 
 .barra-pm-pokemon .track {
+    -fx-background-color: #0a0a0f;
+    -fx-background-radius: 5;
+}
+
+/* ── Barra de Energía (Guerrero) — tono naranja/ámbar ────────── */
+.barra-energia-pokemon {
+    -fx-background-color: #0a0a0f;
+    -fx-border-color: #3a3050;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.barra-energia-pokemon .bar {
+    -fx-background-color: #e09030;
+    -fx-background-radius: 5;
+    -fx-padding: 0;
+}
+
+.barra-energia-pokemon .track {
     -fx-background-color: #0a0a0f;
     -fx-background-radius: 5;
 }

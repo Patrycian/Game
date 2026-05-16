@@ -226,6 +226,22 @@ public class MazmorraController implements Initializable {
     /** Label numérico de PM del héroe. Formato: "PM_actual / PM_max PM". */
     @FXML private Label       lblPmHeroe;
 
+    // ── FXML: barra de Energía del Guerrero ──────────────────────────────────
+    /**
+     * Fila con etiqueta "EN" y barra de Energía del Guerrero.
+     * Visible solo cuando el héroe es un {@link Guerrero}.
+     */
+    @FXML private HBox        filaEnergia;
+
+    /** Fila con el texto numérico de Energía. Visible solo para el Guerrero. */
+    @FXML private HBox        filaNumEnergia;
+
+    /** Barra de progreso que representa la Energía actual del Guerrero (naranja). */
+    @FXML private ProgressBar barraEnergia;
+
+    /** Label numérico de Energía. Formato: "EN_actual / EN_max EN". */
+    @FXML private Label       lblEnergiaHeroe;
+
     // ── FXML: barra de PM del enemigo ────────────────────────────────────────
     /**
      * Fila del panel de enemigo con la etiqueta "PM" y la barra de PM.
@@ -272,6 +288,35 @@ public class MazmorraController implements Initializable {
 
     /** Botón "❌ Cancelar" del overlay de huida. */
     @FXML private Button btnCancelarHuida;
+
+    // ── FXML: overlay de descanso (tras huida exitosa) ───────────────────────
+    /**
+     * StackPane semiopaco que cubre la pantalla mientras el héroe descansa
+     * tras una huida exitosa. Muestra la animación de recuperación de HP (y PM)
+     * antes de navegar al menú principal.
+     */
+    @FXML private StackPane overlayDescanso;
+
+    /** Barra de progreso animada que refleja la vida recuperada (0 → porcentaje final). */
+    @FXML private ProgressBar barraDescansoHp;
+
+    /** Label "+N HP" que muestra cuánta vida se recuperó. */
+    @FXML private Label lblDescansoHp;
+
+    /**
+     * Fila entera del panel de maná durante el descanso.
+     * Se hace visible solo para personajes {@link Magico}.
+     */
+    @FXML private VBox filaDescansopm;
+
+    /** Barra de progreso animada del maná recuperado durante el descanso. */
+    @FXML private ProgressBar barraDescansoPm;
+
+    /** Label "+N PM" que muestra cuánto maná se recuperó. */
+    @FXML private Label lblDescansoPm;
+
+    /** Barra de progreso general del overlay de descanso (avanza de 0 a 1 durante toda la pantalla). */
+    @FXML private ProgressBar barCargaDescanso;
 
     // ── FXML: pantalla de carga entre fases ──────────────────────────────────
     /**
@@ -343,6 +388,12 @@ public class MazmorraController implements Initializable {
 
     /** Cantidad de PM que restaura cada poción mágica. */
     private static final int RESTAURACION_PM_POCION = 10;
+
+    /**
+     * Porcentaje de vida (y maná, si aplica) que se recupera al descansar
+     * tras una huida exitosa antes de volver al menú principal.
+     */
+    private static final int RECUPERACION_HUIDA_PCT = 25;
 
     /**
      * Método vacío requerido por {@link Initializable}.
@@ -501,6 +552,13 @@ public class MazmorraController implements Initializable {
         filaNumPm.setVisible(esMagico);
         filaNumPm.setManaged(esMagico);
         if (esMagico) actualizarBarraPm();
+
+        // ── Barra de Energía (solo para el Guerrero)
+        filaEnergia.setVisible(esGuerrero);
+        filaEnergia.setManaged(esGuerrero);
+        filaNumEnergia.setVisible(esGuerrero);
+        filaNumEnergia.setManaged(esGuerrero);
+        if (esGuerrero) actualizarBarraEnergia();
 
         // ── Log de inicio del combate
         txtLog.clear();
@@ -694,8 +752,9 @@ public class MazmorraController implements Initializable {
             btnObjetos.setDisable(true);
             btnHuir.setDisable(true);
 
-            PauseTransition pausa = new PauseTransition(Duration.seconds(1.2));
-            pausa.setOnFinished(e -> navegarAMenu());
+            // Breve pausa antes de mostrar la pantalla de descanso
+            PauseTransition pausa = new PauseTransition(Duration.millis(600));
+            pausa.setOnFinished(e -> mostrarPantallaDescanso());
             pausa.play();
 
         } else {
@@ -774,155 +833,254 @@ public class MazmorraController implements Initializable {
     private enum AccionHeroe { ATAQUE, HABILIDAD, HABILIDAD_GUERRERO_2, POCION, POCION_MAGICA }
 
     /**
+    /**
+     * Deshabilita todos los botones de acción de combate mientras se procesa
+     * un turno (animación + pausa), evitando que el jugador pueda enviar
+     * múltiples acciones simultáneas.
+     */
+    private void desactivarBotonesCombate() {
+        btnAtacar.setDisable(true);
+        btnMagia.setDisable(true);
+        btnHabilidades.setDisable(true);
+        btnHabilidad.setDisable(true);
+        btnObjetos.setDisable(true);
+        btnHuir.setDisable(true);
+    }
+
+    /**
+     * Reactiva los botones de acción tras completar el turno, respetando el estado
+     * real del inventario y PM del héroe.
+     */
+    private void activarBotonesCombate() {
+        btnAtacar.setDisable(false);
+        btnHuir.setDisable(false);
+        btnMagia.setDisable(false);
+        btnHabilidades.setDisable(false);
+        btnHabilidad.setDisable(false);
+        // Objetos: solo si quedan pociones
+        btnObjetos.setDisable(pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0);
+        // Re-actualizar submenús con el estado actualizado (PM / EN)
+        if (sesion.getHeroe() instanceof Magico)
+            construirSubmenuMagia((Magico) sesion.getHeroe());
+        if (sesion.getHeroe() instanceof Guerrero)
+            construirSubmenuHabilidades((Guerrero) sesion.getHeroe());
+    }
+
+    /**
+     * Actualiza todas las barras de HP y PM de ambos combatientes.
+     * Se llama al final de cada fase de turno para reflejar el estado actual.
+     */
+    private void actualizarTodasLasBarras() {
+        actualizarBarraHeroe();
+        actualizarBarraEnemigo();
+        if (sesion.getHeroe() instanceof Magico)   actualizarBarraPm();
+        if (sesion.getHeroe() instanceof Guerrero) actualizarBarraEnergia();
+        if (motor.getEnemigo().tienePmMax())       actualizarBarraPmEnemigo();
+    }
+
+    /**
+     * Comprueba el resultado del motor y, si el combate terminó, lo procesa.
+     * De lo contrario reactiva los botones para el siguiente turno.
+     */
+    private void cerrarTurno() {
+        ResultadoCombate res = motor.getResultado();
+        if (res != ResultadoCombate.EN_CURSO) {
+            combateTerminado = true;
+            procesarFinCombate(res);
+        } else {
+            activarBotonesCombate();
+        }
+    }
+
+    /**
      * Procesa un turno completo según la acción elegida por el jugador.
      *
-     * <p>Flujo general para las acciones de combate directo (ATAQUE, HABILIDAD):</p>
+     * <p>El turno se divide en dos fases separadas por una {@link PauseTransition}
+     * de 750 ms para que el jugador pueda leer el resultado de su acción antes de
+     * ver la reacción del enemigo:</p>
      * <ol>
-     *   <li>Gastar PM si corresponde (Magico usando HABILIDAD).</li>
-     *   <li>Llamar al motor para ejecutar el turno y obtener los mensajes.</li>
-     *   <li>Animar el golpe al enemigo (excepto curación del Clérigo).</li>
-     *   <li>Si el enemigo sobrevive, animar el contraataque sobre el héroe (con pausa de 350 ms).</li>
+     *   <li><b>Fase 1</b>: acción del héroe (ataque, habilidad, buff, poción) →
+     *       log + animación + actualización de barras del enemigo.</li>
+     *   <li><b>Pausa de 750 ms</b></li>
+     *   <li><b>Fase 2</b>: reacción del enemigo → log + animación + actualización
+     *       de barras del héroe → comprobación de resultado.</li>
      * </ol>
      *
-     * <p>Para las acciones de objeto (POCION, POCION_MAGICA):</p>
-     * <ol>
-     *   <li>Decrementar el contador de pociones.</li>
-     *   <li>Aplicar el efecto de curación/restauración.</li>
-     *   <li>El enemigo aprovecha el turno y contraataca.</li>
-     *   <li>Si el héroe muere por contraataque, el resultado se marca como DERROTA.</li>
-     * </ol>
-     *
-     * <p>Después de toda acción se actualizan las barras de vida y de PM, y se
-     * comprueba si el resultado del motor es distinto de {@code EN_CURSO}.</p>
-     *
-     * <p><b>Importante</b>: los casos POCION y POCION_MAGICA usan
-     * {@code motor.ejecutarContraataqueEnemigo()} en lugar de llamar directamente a
-     * {@code enemigo.realizarAtaque()}, para que {@code motor.turno} se incremente
-     * correctamente y {@code motor.resultado} se actualice a DERROTA si el héroe muere.
-     * Usan {@code break} (no {@code return}) para que la actualización de barras y la
-     * comprobación de fin de combate siempre se ejecuten.</p>
+     * <p>Los botones de acción se deshabilitan al inicio del turno y se reactivan
+     * al final (si el combate continúa) para evitar acciones superpuestas.</p>
      *
      * @param accion la acción que el jugador ha elegido para este turno
      */
     private void ejecutarTurno(AccionHeroe accion) {
         if (combateTerminado) return;
+        desactivarBotonesCombate();
 
         switch (accion) {
+
+            // ── ATAQUE BÁSICO / HABILIDAD ESPECIAL ───────────────────────────
             case ATAQUE:
             case HABILIDAD: {
-                // Si es un personaje mágico usando su habilidad especial, consume la mitad de su PM máximo
+                // EN check para el Guerrero (Golpe Devastador)
+                if (accion == AccionHeroe.HABILIDAD && sesion.getHeroe() instanceof Guerrero) {
+                    Guerrero g = (Guerrero) sesion.getHeroe();
+                    if (!g.gastarEnergia(Guerrero.COSTE_GOLPE_DEVASTADOR)) {
+                        agregarLog("⚡ Energía insuficiente para Golpe Devastador"
+                                + "  [EN: " + g.getEnergia() + "/" + g.getEnergiaMax() + "]");
+                        actualizarBarraEnergia();
+                        activarBotonesCombate();
+                        return;
+                    }
+                    actualizarBarraEnergia(); // refleja el gasto antes del ataque
+                }
+                // PM check para héroes mágicos
                 if (accion == AccionHeroe.HABILIDAD && sesion.getHeroe() instanceof Magico) {
                     Magico m = (Magico) sesion.getHeroe();
                     int coste = Math.max(1, m.getPmMax() / 2);
                     if (!m.gastarPm(coste)) {
-                        // Red de seguridad: el botón debería estar deshabilitado si PM es insuficiente,
-                        // pero si por algún motivo se llega aquí, abortar el turno sin penalización.
                         agregarLog("⚠ PM insuficientes para usar " + m.getNombreHabilidad()
-                                + ". (PM: " + m.getPm() + "/" + m.getPmMax() + ")");
+                                + "  [PM: " + m.getPm() + "/" + m.getPmMax() + "]");
+                        activarBotonesCombate();
                         return;
                     }
                 }
-                List<String> mensajes = motor.ejecutarTurnoHeroe(accion == AccionHeroe.HABILIDAD);
-                mensajes.forEach(this::agregarLog);
 
-                // Animar golpe al enemigo, EXCEPTO cuando el Clérigo usa su curación
-                // (en ese caso no ataca al enemigo, solo se cura a sí mismo)
-                if (!(sesion.getHeroe() instanceof Clerigo) || accion != AccionHeroe.HABILIDAD) {
-                    animarGolpe(imgEnemigo);
+                // Fase 1: acción del héroe
+                agregarLog(motor.iniciarTurno());
+                motor.ejecutarAccionHeroe(accion == AccionHeroe.HABILIDAD)
+                     .forEach(this::agregarLog);
+                actualizarBarraEnemigo();
+                if (motor.getEnemigo().tienePmMax()) actualizarBarraPmEnemigo();
+
+                // Animar sprite enemigo (excepto curación propia del Clérigo)
+                boolean atacaEnemigo = !(sesion.getHeroe() instanceof Clerigo)
+                                        || accion != AccionHeroe.HABILIDAD;
+                if (atacaEnemigo) animarGolpe(imgEnemigo);
+
+                // Victoria inmediata (enemigo derrotado en fase 1)
+                if (motor.haTerminado()) {
+                    agregarLog("");
+                    actualizarTodasLasBarras();
+                    combateTerminado = true;
+                    procesarFinCombate(motor.getResultado());
+                    return;
                 }
-                // Si el enemigo sobrevivió al ataque del héroe, también contraataca
-                if (motor.getEnemigo().estaVivo()) {
-                    PauseTransition espera = new PauseTransition(Duration.millis(350));
-                    espera.setOnFinished(ev -> animarGolpe(imgHeroe));
-                    espera.play();
-                }
+
+                // Fase 2: reacción del enemigo tras pausa
+                PauseTransition pausa1 = new PauseTransition(Duration.millis(750));
+                pausa1.setOnFinished(ev -> {
+                    motor.ejecutarReaccionEnemigo().forEach(this::agregarLog);
+                    agregarLog("");
+                    if (accion == AccionHeroe.ATAQUE) regenerarEnergiaGuerrero();
+                    actualizarTodasLasBarras();
+                    PauseTransition anim = new PauseTransition(Duration.millis(150));
+                    anim.setOnFinished(e -> animarGolpe(imgHeroe));
+                    anim.play();
+                    cerrarTurno();
+                });
+                pausa1.play();
                 break;
             }
+
+            // ── POSTURA DE HIERRO (Guerrero) ─────────────────────────────────
             case HABILIDAD_GUERRERO_2: {
-                // Postura de Hierro: buff defensivo pasivo, no ataca directamente al enemigo
                 Guerrero g = (Guerrero) sesion.getHeroe();
-                String efecto = g.usarPosturaDeHierro();
-                if (efecto == null) {
-                    // La postura ya estaba activa (no debería ocurrir: el botón se deshabilita)
-                    agregarLog("🛡️ La Postura de Hierro ya está activa.");
-                    break; // break, no return: las barras y el fin de combate siguen procesándose
-                }
-                agregarLog(efecto);
+                agregarLog(motor.iniciarTurno());
 
-                // El enemigo contraataca (el buff ocupa el turno del héroe)
-                List<String> contraataque = motor.ejecutarContraataqueEnemigo();
-                contraataque.forEach(this::agregarLog);
-                if (!contraataque.isEmpty()) {
-                    PauseTransition espera = new PauseTransition(Duration.millis(200));
-                    espera.setOnFinished(ev -> animarGolpe(imgHeroe));
-                    espera.play();
+                // Guardia: postura ya activa (el botón debería estar deshabilitado)
+                if (g.isPosturaDeHierroActiva()) {
+                    agregarLog("  🛡️ La Postura de Hierro ya está activa.");
+                    agregarLog("");
+                    activarBotonesCombate();
+                    break;
                 }
+                // EN check — se comprueba ANTES de gastar para no quedar en deuda
+                if (!g.gastarEnergia(Guerrero.COSTE_POSTURA_HIERRO)) {
+                    agregarLog("⚡ Energía insuficiente para Postura de Hierro"
+                            + "  [EN: " + g.getEnergia() + "/" + g.getEnergiaMax() + "]");
+                    agregarLog("");
+                    actualizarBarraEnergia();
+                    activarBotonesCombate();
+                    break;
+                }
+                actualizarBarraEnergia(); // refleja el gasto antes de la animación
+
+                String efecto = g.usarPosturaDeHierro();
+                agregarLog("▸ " + efecto);
+
+                PauseTransition pausa2 = new PauseTransition(Duration.millis(750));
+                pausa2.setOnFinished(ev -> {
+                    motor.ejecutarReaccionEnemigo().forEach(this::agregarLog);
+                    agregarLog("");
+                    actualizarTodasLasBarras();
+                    PauseTransition anim = new PauseTransition(Duration.millis(150));
+                    anim.setOnFinished(e -> animarGolpe(imgHeroe));
+                    anim.play();
+                    cerrarTurno();
+                });
+                pausa2.play();
                 break;
             }
+
+            // ── POCIÓN DE CURACIÓN ────────────────────────────────────────────
             case POCION: {
                 pocionesRestantes--;
                 Heroe h = sesion.getHeroe();
                 int hpAntes = h.getPuntosGolpe();
                 h.curar(CURACION_POCION);
-                int curado = h.getPuntosGolpe() - hpAntes; // puede ser < CURACION_POCION si HP ya estaba alto
+                int curado = h.getPuntosGolpe() - hpAntes;
 
-                agregarLog("🧪 " + h.getNombre() + " usa una poción y recupera " +
-                        curado + " HP. (HP: " + h.getPuntosGolpe() + "/" +
-                        h.getPuntosGolpeMax() + ")");
+                agregarLog(motor.iniciarTurno());
+                agregarLog(String.format("▸ 🧪 %s usa Poción de Curación  →  +%d HP  [%s: %d/%d HP]",
+                        h.getNombre(), curado, h.getNombre(),
+                        h.getPuntosGolpe(), h.getPuntosGolpeMax()));
+                actualizarBarraHeroe(); // reflejar la curación de inmediato
 
-                // El enemigo aprovecha el turno — pasamos por el motor para que turno++
-                // y motor.resultado se actualicen correctamente (igual que HABILIDAD_GUERRERO_2)
-                List<String> contraPocion = motor.ejecutarContraataqueEnemigo();
-                contraPocion.forEach(this::agregarLog);
-                if (!contraPocion.isEmpty()) animarGolpe(imgHeroe);
-
-                if (pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0)
-                    btnObjetos.setDisable(true);
+                PauseTransition pausa3 = new PauseTransition(Duration.millis(750));
+                pausa3.setOnFinished(ev -> {
+                    motor.ejecutarReaccionEnemigo().forEach(this::agregarLog);
+                    agregarLog("");
+                    actualizarTodasLasBarras();
+                    PauseTransition anim = new PauseTransition(Duration.millis(150));
+                    anim.setOnFinished(e -> animarGolpe(imgHeroe));
+                    anim.play();
+                    cerrarTurno();
+                });
+                pausa3.play();
                 break;
             }
+
+            // ── POCIÓN MÁGICA ─────────────────────────────────────────────────
             case POCION_MAGICA: {
                 pocionesMagicasRestantes--;
                 Heroe h = sesion.getHeroe();
 
+                agregarLog(motor.iniciarTurno());
                 if (h instanceof Magico) {
                     Magico m = (Magico) h;
                     int pmAntes = m.getPm();
                     m.restaurarPmParcial(RESTAURACION_PM_POCION);
-                    int restaurado = m.getPm() - pmAntes; // puede ser < RESTAURACION_PM si PM ya estaba lleno
-                    agregarLog("🔮 " + h.getNombre() + " usa una poción mágica y recupera "
-                            + restaurado + " PM. (PM: " + m.getPm() + "/" + m.getPmMax() + ")");
+                    int restaurado = m.getPm() - pmAntes;
+                    agregarLog(String.format("▸ 🔮 %s usa Poción Mágica  →  +%d PM  [%d/%d PM]",
+                            h.getNombre(), restaurado, m.getPm(), m.getPmMax()));
+                    actualizarBarraPm(); // reflejar la recarga de PM de inmediato
                 } else {
-                    // Personaje no mágico: la poción se consume sin efecto
-                    agregarLog("🔮 " + h.getNombre() + " usa una poción mágica..."
-                            + " ¡No tienes PM! La poción no hizo efecto.");
+                    agregarLog("▸ 🔮 " + h.getNombre()
+                            + " usa Poción Mágica... ¡Sin PM! No hizo efecto.");
                 }
 
-                // El enemigo aprovecha el turno — pasamos por el motor para coherencia
-                List<String> contraMagica = motor.ejecutarContraataqueEnemigo();
-                contraMagica.forEach(this::agregarLog);
-                if (!contraMagica.isEmpty()) animarGolpe(imgHeroe);
-
-                if (pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0)
-                    btnObjetos.setDisable(true);
+                PauseTransition pausa4 = new PauseTransition(Duration.millis(750));
+                pausa4.setOnFinished(ev -> {
+                    motor.ejecutarReaccionEnemigo().forEach(this::agregarLog);
+                    agregarLog("");
+                    actualizarTodasLasBarras();
+                    PauseTransition anim = new PauseTransition(Duration.millis(150));
+                    anim.setOnFinished(e -> animarGolpe(imgHeroe));
+                    anim.play();
+                    cerrarTurno();
+                });
+                pausa4.play();
                 break;
             }
-        }
-
-        // Separador y actualización de barras (siempre, independientemente de la acción)
-        agregarLog("");
-        actualizarBarraHeroe();
-        actualizarBarraEnemigo();
-        if (sesion.getHeroe() instanceof Magico) actualizarBarraPm();
-        if (motor.getEnemigo().tienePmMax()) actualizarBarraPmEnemigo();
-
-        // Determinar resultado final del combate
-        // motor.getResultado() ya refleja correctamente DERROTA si el héroe murió
-        // en cualquiera de los casos (incluyendo poción), al pasar por ejecutarContraataqueEnemigo()
-        ResultadoCombate resultado = motor.getResultado();
-
-        if (resultado != ResultadoCombate.EN_CURSO) {
-            combateTerminado = true;
-            procesarFinCombate(resultado);
         }
     }
 
@@ -1226,6 +1384,7 @@ public class MazmorraController implements Initializable {
      */
     private void construirSubmenuHabilidades(Guerrero guerrero) {
         contenedorHabilidadesGuerrero.getChildren().clear();
+        int energiaActual = guerrero.getEnergia();
 
         for (String[] h : guerrero.getHabilidadesGuerrero()) {
             String nombre      = h[0];
@@ -1242,24 +1401,36 @@ public class MazmorraController implements Initializable {
 
             Tooltip tip = new Tooltip(descripcion);
             tip.setWrapText(true);
-            tip.setMaxWidth(210);
+            tip.setMaxWidth(220);
             btn.setTooltip(tip);
 
             if (esGolpe) {
-                // Golpe Devastador: siempre disponible
-                btn.setText("⚔️ " + nombre.toUpperCase());
-                btn.setOnAction(e -> {
-                    handleVolverMenuHabilidades();
-                    ejecutarTurno(AccionHeroe.HABILIDAD);
-                });
+                // Golpe Devastador: disponible si hay energía suficiente
+                int coste = Guerrero.COSTE_GOLPE_DEVASTADOR;
+                boolean puedeUsarlo = energiaActual >= coste;
+                if (puedeUsarlo) {
+                    btn.setText("⚔️ " + nombre.toUpperCase() + "  (" + coste + " EN)");
+                    btn.setOnAction(e -> {
+                        handleVolverMenuHabilidades();
+                        ejecutarTurno(AccionHeroe.HABILIDAD);
+                    });
+                } else {
+                    btn.setText("⚔️ " + nombre.toUpperCase() + "  (sin EN)");
+                    btn.setDisable(true);
+                }
             } else {
-                // Postura de Hierro: usable solo una vez por combate
+                // Postura de Hierro: usable solo una vez por combate y con EN suficiente
+                int coste = Guerrero.COSTE_POSTURA_HIERRO;
                 boolean yaActiva = guerrero.isPosturaDeHierroActiva();
+                boolean sinEnergia = energiaActual < coste;
                 if (yaActiva) {
                     btn.setText("✅ " + nombre.toUpperCase() + "  (activa)");
                     btn.setDisable(true);
+                } else if (sinEnergia) {
+                    btn.setText("🛡️ " + nombre.toUpperCase() + "  (sin EN)");
+                    btn.setDisable(true);
                 } else {
-                    btn.setText("🛡️ " + nombre.toUpperCase());
+                    btn.setText("🛡️ " + nombre.toUpperCase() + "  (" + coste + " EN)");
                     btn.setOnAction(e -> {
                         handleVolverMenuHabilidades();
                         ejecutarTurno(AccionHeroe.HABILIDAD_GUERRERO_2);
@@ -1311,50 +1482,45 @@ public class MazmorraController implements Initializable {
      */
     private void ejecutarHabilidadMagicaAdicional(String nombre) {
         if (combateTerminado) return;
+        desactivarBotonesCombate();
         Magico magico = (Magico) sesion.getHeroe();
 
         // 1. Verificar y gastar PM
         int coste = magico.getCostePmHabilidad(nombre);
         if (!magico.gastarPm(coste)) {
             agregarLog("⚠ PM insuficientes para usar " + nombre
-                    + ". (PM: " + magico.getPm() + "/" + magico.getPmMax() + ")");
+                    + "  [PM: " + magico.getPm() + "/" + magico.getPmMax() + "]");
+            activarBotonesCombate();
             return;
         }
 
-        // 2. Aplicar el efecto (el objetivo puede ser el enemigo o el propio héroe según la habilidad)
+        // 2. Fase 1: aplicar el efecto de la habilidad
+        agregarLog(motor.iniciarTurno());
         Personaje objetivo = motor.getEnemigo();
         String efecto = magico.ejecutarHabilidadAdicional(nombre, objetivo);
         if (efecto == null) {
-            // La habilidad no tuvo efecto (ya activa u otro motivo): reembolsar PM
             magico.restaurarPmParcial(coste);
-            agregarLog("⚠ " + nombre + " no tuvo efecto.");
+            agregarLog("  ⚠ " + nombre + " no tuvo efecto.");
+            agregarLog("");
+            actualizarTodasLasBarras();
+            activarBotonesCombate();
             return;
         }
-        agregarLog(efecto);
+        agregarLog("▸ " + efecto);
+        actualizarBarraPm(); // reflejar el gasto de PM de inmediato
 
-        // 3. Contraataque del enemigo (el turno del héroe se consume usando la habilidad)
-        List<String> contraataque = motor.ejecutarContraataqueEnemigo();
-        contraataque.forEach(this::agregarLog);
-
-        // Animación del contraataque (el héroe recibe el golpe)
-        if (!contraataque.isEmpty()) {
-            PauseTransition espera = new PauseTransition(Duration.millis(200));
-            espera.setOnFinished(ev -> animarGolpe(imgHeroe));
-            espera.play();
-        }
-
-        agregarLog("");
-        actualizarBarraHeroe();
-        actualizarBarraEnemigo();
-        actualizarBarraPm();
-        if (motor.getEnemigo().tienePmMax()) actualizarBarraPmEnemigo();
-
-        // 4. Comprobar fin de combate (el héroe podría haber muerto por el contraataque)
-        ResultadoCombate resultado = motor.getResultado();
-        if (resultado != ResultadoCombate.EN_CURSO) {
-            combateTerminado = true;
-            procesarFinCombate(resultado);
-        }
+        // 3. Fase 2: contraataque del enemigo tras pausa
+        PauseTransition pausa = new PauseTransition(Duration.millis(750));
+        pausa.setOnFinished(ev -> {
+            motor.ejecutarReaccionEnemigo().forEach(this::agregarLog);
+            agregarLog("");
+            actualizarTodasLasBarras();
+            PauseTransition anim = new PauseTransition(Duration.millis(150));
+            anim.setOnFinished(e -> animarGolpe(imgHeroe));
+            anim.play();
+            cerrarTurno();
+        });
+        pausa.play();
     }
 
     // ── Pantalla de carga entre fases ────────────────────────────────────────
@@ -1534,6 +1700,49 @@ public class MazmorraController implements Initializable {
         }
     }
 
+    /**
+     * Guarda la partida en BD tras una huida exitosa.
+     *
+     * <p>Se llama desde {@link #mostrarPantallaDescanso()} una vez aplicada la
+     * recuperación de HP (y PM), de modo que la partida guardada ya refleja los
+     * valores restaurados. El estado permanece {@code EN_CURSO} para que el jugador
+     * pueda reanudarla desde el menú de carga. El enemigo se limpia (el héroe huyó)
+     * para que al reanudar se genere uno nuevo.</p>
+     */
+    private void guardarAlHuir() {
+        try {
+            Heroe heroe = sesion.getHeroe();
+            if (sesion.getPartida() == null) {
+                // La partida todavía no existe en BD (el jugador huyó en fase 1 sin
+                // haber ganado ningún combate previo): crear la fila ahora.
+                Partida p = new Partida(
+                    sesion.getJugador().getId(),
+                    heroe.getId(),
+                    sesion.getFaseActual(),
+                    heroe.getPuntosGolpe()
+                );
+                p.setPmActual(pmActualHeroe());
+                // Estado EN_CURSO por defecto; sin enemigo activo
+                PartidaDAO.insertar(p);
+                sesion.setPartida(p);
+            } else {
+                Partida p = sesion.getPartida();
+                p.setFaseActual(sesion.getFaseActual());
+                p.setHpActual(heroe.getPuntosGolpe());
+                p.setPmActual(pmActualHeroe());
+                p.setEstado(modelo.Partida.Estado.EN_CURSO);
+                // Limpiar datos del enemigo: el héroe escapó, la fase empieza de nuevo
+                p.setTipoEnemigo(null);
+                p.setHpEnemigo(0);
+                p.setPmEnemigo(0);
+                PartidaDAO.actualizar(p);
+            }
+            PersonajeDAO.actualizarHp(heroe.getId(), heroe.getPuntosGolpe());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // ── Navegación ────────────────────────────────────────────────────────────
 
     /**
@@ -1570,6 +1779,84 @@ public class MazmorraController implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Muestra el overlay de descanso tras una huida exitosa.
+     *
+     * <p>El héroe recupera {@link #RECUPERACION_HUIDA_PCT}% de su HP máximo (y de su
+     * PM máximo si es un personaje {@link Magico}). Las barras se animan de 0 hasta
+     * el porcentaje final en 1.5 s y la barra de progreso general llega a 1 en 3.5 s,
+     * tras lo cual se navega automáticamente al menú principal.</p>
+     */
+    private void mostrarPantallaDescanso() {
+        Heroe heroe = sesion.getHeroe();
+
+        // ── Calcular recuperación ─────────────────────────────────────────────
+        int hpRecuperado = Math.max(1, heroe.getPuntosGolpeMax() * RECUPERACION_HUIDA_PCT / 100);
+        heroe.curar(hpRecuperado);
+        double ratioHpFinal = heroe.getPorcentajeVida();
+
+        int pmRecuperado = 0;
+        double ratioPmFinal = 0.0;
+        boolean esMagico = heroe instanceof Magico;
+        if (esMagico) {
+            Magico magico = (Magico) heroe;
+            pmRecuperado = Math.max(1, magico.getPmMax() * RECUPERACION_HUIDA_PCT / 100);
+            magico.setPm(magico.getPm() + pmRecuperado);   // setPm clampea al máximo automáticamente
+            ratioPmFinal = magico.getPmMax() > 0
+                    ? (double) magico.getPm() / magico.getPmMax()
+                    : 0.0;
+        }
+
+        // ── Guardar partida con los valores ya recuperados ────────────────────
+        guardarAlHuir();
+
+        // ── Configurar labels ─────────────────────────────────────────────────
+        lblDescansoHp.setText("+" + hpRecuperado + " HP  →  "
+                + heroe.getPuntosGolpe() + " / " + heroe.getPuntosGolpeMax() + " HP");
+
+        if (esMagico) {
+            Magico magico = (Magico) heroe;
+            lblDescansoPm.setText("+" + pmRecuperado + " PM  →  "
+                    + magico.getPm() + " / " + magico.getPmMax() + " PM");
+            filaDescansopm.setVisible(true);
+            filaDescansopm.setManaged(true);
+        }
+
+        // ── Mostrar overlay ───────────────────────────────────────────────────
+        overlayDescanso.setMouseTransparent(false);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), overlayDescanso);
+        fadeIn.setToValue(1.0);
+        fadeIn.play();
+
+        // ── Animaciones de barras (0 → ratio final en 1.5 s) ─────────────────
+        final double hpTarget = ratioHpFinal;
+        final double pmTarget = ratioPmFinal;
+
+        Timeline barrasAnim = new Timeline(
+            new KeyFrame(Duration.ZERO,
+                new KeyValue(barraDescansoHp.progressProperty(), 0),
+                new KeyValue(barraDescansoPm.progressProperty(), 0)
+            ),
+            new KeyFrame(Duration.seconds(1.5),
+                new KeyValue(barraDescansoHp.progressProperty(), hpTarget),
+                new KeyValue(barraDescansoPm.progressProperty(), pmTarget)
+            )
+        );
+        barrasAnim.play();
+
+        // ── Barra de progreso general (0 → 1 en 3.5 s) → luego navegar ───────
+        Timeline progreso = new Timeline(
+            new KeyFrame(Duration.ZERO,
+                new KeyValue(barCargaDescanso.progressProperty(), 0)
+            ),
+            new KeyFrame(Duration.seconds(3.5),
+                new KeyValue(barCargaDescanso.progressProperty(), 1)
+            )
+        );
+        progreso.setOnFinished(e -> navegarAMenu());
+        progreso.play();
     }
 
     /**
@@ -1615,6 +1902,35 @@ public class MazmorraController implements Initializable {
         lblPmHeroe.setText(m.getPm() + " / " + m.getPmMax() + " PM");
         String color = pct > 0.3 ? "#7c6fcd" : "#4a3d8f";
         barraPoderMagico.setStyle("-fx-accent: " + color + ";");
+    }
+
+    /**
+     * Refresca la barra de Energía del Guerrero y el label numérico.
+     *
+     * <p>Escala de color:</p>
+     * <ul>
+     *   <li>{@code >50 %} — naranja brillante {@code #e09030}</li>
+     *   <li>{@code 25–50 %} — naranja oscuro {@code #b06010}</li>
+     *   <li>{@code ≤25 %} — rojo-naranja {@code #c03000} (energía crítica)</li>
+     * </ul>
+     *
+     * <p>Solo debe llamarse cuando el héroe es instancia de {@link Guerrero}.</p>
+     */
+    private void actualizarBarraEnergia() {
+        if (!(sesion.getHeroe() instanceof Guerrero)) return;
+        Guerrero g = (Guerrero) sesion.getHeroe();
+        barraEnergia.setProgress(g.getPorcentajeEnergia());
+        lblEnergiaHeroe.setText(g.getEnergia() + " / " + g.getEnergiaMax() + " EN");
+    }
+
+    /**
+     * Regenera la energía del Guerrero al final de cada turno y refresca la barra.
+     * Se llama desde las lambdas de Fase 2 en {@link #ejecutarTurno} si el héroe es Guerrero.
+     */
+    private void regenerarEnergiaGuerrero() {
+        if (!(sesion.getHeroe() instanceof Guerrero)) return;
+        ((Guerrero) sesion.getHeroe()).regenerarEnergia();
+        actualizarBarraEnergia();
     }
 
     /**

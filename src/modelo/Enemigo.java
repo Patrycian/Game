@@ -109,7 +109,8 @@ public abstract class Enemigo extends Personaje {
 	 */
 	public String realizarAtaque(Heroe objetivo) {
 		int danio = objetivo.recibirAtaque(this);
-		return String.format("%s %s ataca a %s y causa %d puntos de daño. (HP restante: %d)", getIcono(), getNombre(),
-				objetivo.getNombre(), danio, objetivo.getPuntosGolpe());
+		return String.format("%s %s  →  -%d HP  [%s: %d/%d HP]",
+				getIcono(), getNombre(), danio,
+				objetivo.getNombre(), objetivo.getPuntosGolpe(), objetivo.getPuntosGolpeMax());
 	}
 }

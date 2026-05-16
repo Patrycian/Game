@@ -109,6 +109,19 @@
                             <Label fx:id="lblPmHeroe" styleClass="info-pokemon-hp-num"
                                    text="-/- PM"/>
                         </HBox>
+                        <!-- Barra de Energía: solo visible para el Guerrero -->
+                        <HBox fx:id="filaEnergia" alignment="CENTER_LEFT" spacing="8"
+                              visible="false" managed="false">
+                            <Label styleClass="info-pokemon-pm-label" text="EN"/>
+                            <ProgressBar fx:id="barraEnergia" prefWidth="200" prefHeight="10"
+                                         progress="1.0"
+                                         styleClass="barra-energia-pokemon"/>
+                        </HBox>
+                        <HBox fx:id="filaNumEnergia" alignment="CENTER_RIGHT"
+                              visible="false" managed="false">
+                            <Label fx:id="lblEnergiaHeroe" styleClass="info-pokemon-hp-num"
+                                   text="-/- EN"/>
+                        </HBox>
                     </VBox>
                 </HBox>
 
@@ -394,6 +407,93 @@
                         styleClass="btn-batalla-pokemon-huir"
                         prefWidth="190" prefHeight="40"/>
             </HBox>
+
+        </VBox>
+    </StackPane>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         OVERLAY DESCANSO – aparece tras una huida exitosa
+         Muestra la recuperación de HP (y PM si aplica) antes de
+         volver al menú principal.
+         Inicialmente invisible (opacity=0, mouseTransparent=true).
+    ═══════════════════════════════════════════════════════════════ -->
+    <StackPane fx:id="overlayDescanso"
+               opacity="0" mouseTransparent="true"
+               style="-fx-background-color: rgba(0,0,0,0.82);">
+
+        <VBox alignment="CENTER" spacing="18"
+              maxWidth="500" maxHeight="460"
+              style="-fx-background-color: linear-gradient(to bottom, rgba(20,20,31,0.97), rgba(13,13,22,0.99));
+                     -fx-border-color: #c8a84b;
+                     -fx-border-width: 2;
+                     -fx-border-radius: 12;
+                     -fx-background-radius: 12;
+                     -fx-padding: 32 36 28 36;
+                     -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.45), 24, 0, 0, 0);">
+
+            <!-- Título -->
+            <Label text="⛺  DESCANSANDO..."
+                   style="-fx-font-family: Georgia; -fx-font-size: 22px; -fx-font-weight: bold;
+                          -fx-text-fill: #f0d070;
+                          -fx-effect: dropshadow(gaussian, rgba(240,208,112,0.7), 14, 0, 0, 0);"/>
+
+            <!-- Separador -->
+            <HBox prefHeight="1" prefWidth="420"
+                  style="-fx-background-color: rgba(200,168,75,0.4);"/>
+
+            <!-- Mensaje del héroe -->
+            <Label fx:id="lblDescansoMensaje"
+                   text="El héroe descansa y recupera fuerzas..."
+                   wrapText="true" textAlignment="CENTER"
+                   style="-fx-font-family: Georgia; -fx-font-size: 14px;
+                          -fx-font-style: italic; -fx-text-fill: #c8c8e0;
+                          -fx-padding: 0 0 6 0;"/>
+
+            <!-- Fila HP -->
+            <VBox spacing="6" style="-fx-padding: 0 0 4 0;">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="❤  Vida recuperada"
+                           style="-fx-font-family: Georgia; -fx-font-size: 13px;
+                                  -fx-font-weight: bold; -fx-text-fill: #e07070;"/>
+                    <Label fx:id="lblDescansoHp" text="+0 HP"
+                           style="-fx-font-family: Georgia; -fx-font-size: 13px;
+                                  -fx-text-fill: #f0a0a0;"/>
+                </HBox>
+                <ProgressBar fx:id="barraDescansoHp" progress="0"
+                             prefWidth="420" prefHeight="18"
+                             styleClass="barra-vida-pokemon"/>
+            </VBox>
+
+            <!-- Fila PM (oculta si el héroe no tiene maná) -->
+            <VBox fx:id="filaDescansopm" spacing="6"
+                  managed="false" visible="false"
+                  style="-fx-padding: 0 0 4 0;">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="🔷  Maná recuperado"
+                           style="-fx-font-family: Georgia; -fx-font-size: 13px;
+                                  -fx-font-weight: bold; -fx-text-fill: #7090e0;"/>
+                    <Label fx:id="lblDescansoPm" text="+0 PM"
+                           style="-fx-font-family: Georgia; -fx-font-size: 13px;
+                                  -fx-text-fill: #a0b8f8;"/>
+                </HBox>
+                <ProgressBar fx:id="barraDescansoPm" progress="0"
+                             prefWidth="420" prefHeight="18"
+                             styleClass="barra-pm-pokemon"/>
+            </VBox>
+
+            <!-- Separador -->
+            <HBox prefHeight="1" prefWidth="420"
+                  style="-fx-background-color: rgba(200,168,75,0.3);"/>
+
+            <!-- Barra progreso general + texto de estado -->
+            <VBox spacing="8" alignment="CENTER">
+                <Label text="Volviendo al menú principal..."
+                       style="-fx-font-family: Georgia; -fx-font-size: 12px;
+                              -fx-font-style: italic; -fx-text-fill: #9090b0;"/>
+                <ProgressBar fx:id="barCargaDescanso" progress="0"
+                             prefWidth="420" prefHeight="12"
+                             style="-fx-accent: #c8a84b;"/>
+            </VBox>
 
         </VBox>
     </StackPane>
