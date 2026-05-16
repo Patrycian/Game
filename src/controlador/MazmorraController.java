@@ -30,6 +30,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
@@ -266,6 +267,12 @@ public class MazmorraController implements Initializable {
     /** Label "🎲 Probabilidad de éxito: N%" destacado en el panel. */
     @FXML private Label lblHuidaProbFinal;
 
+    /** Botón "✅ Intentar huir" del overlay de huida. */
+    @FXML private Button btnConfirmarHuida;
+
+    /** Botón "❌ Cancelar" del overlay de huida. */
+    @FXML private Button btnCancelarHuida;
+
     // ── FXML: pantalla de carga entre fases ──────────────────────────────────
     /**
      * StackPane opaco que cubre toda la ventana entre fases.
@@ -315,6 +322,9 @@ public class MazmorraController implements Initializable {
     /** Reproductor de música de fondo; se cambia entre fases (Battle.mp3 / finalBoss.mp3). */
     private MediaPlayer mediaPlayer;
 
+    /** Clip de sonido corto que suena al pasar el cursor sobre cualquier botón de combate. */
+    private AudioClip sonidoHover;
+
     // ── Inventario del combate ────────────────────────────────────────────────
     /**
      * Pociones de curación disponibles para toda la partida.
@@ -361,6 +371,8 @@ public class MazmorraController implements Initializable {
         // El inventario se inicializa aquí, una sola vez para toda la partida
         pocionesRestantes        = 3;
         pocionesMagicasRestantes = 2;
+        inicializarSonidoHover();
+        configurarSonidoBotones();
         prepararCombate();
     }
 
@@ -1080,6 +1092,7 @@ public class MazmorraController implements Initializable {
             btn.setPrefHeight(36);
             btn.setMinHeight(32);
             VBox.setVgrow(btn, javafx.scene.layout.Priority.ALWAYS);
+            agregarSonidoHover(btn);
 
             Tooltip tip = new Tooltip(descripcion);
             tip.setWrapText(true);
@@ -1225,6 +1238,7 @@ public class MazmorraController implements Initializable {
             btn.setPrefHeight(36);
             btn.setMinHeight(32);
             VBox.setVgrow(btn, javafx.scene.layout.Priority.ALWAYS);
+            agregarSonidoHover(btn);
 
             Tooltip tip = new Tooltip(descripcion);
             tip.setWrapText(true);
@@ -1686,6 +1700,53 @@ public class MazmorraController implements Initializable {
         SequentialTransition secuencia =
                 new SequentialTransition(izq1, der1, izq2, der2, centro);
         secuencia.play();
+    }
+
+    /**
+     * Carga el clip {@code cursor.wav} en memoria para reproducirlo con
+     * latencia mínima al pasar el cursor sobre los botones de combate.
+     * Si el archivo no existe, el sonido queda desactivado sin error fatal.
+     */
+    private void inicializarSonidoHover() {
+        try {
+            URL url = getClass().getResource("/recursos/audio/cursor.wav");
+            if (url != null) sonidoHover = new AudioClip(url.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Registra el sonido de hover en un botón dado.
+     * El clip se reproduce en {@code MOUSE_ENTERED}, igual que en el menú principal.
+     *
+     * @param btn botón al que añadir el efecto (ignorado si es {@code null})
+     */
+    private void agregarSonidoHover(Button btn) {
+        if (btn == null) return;
+        btn.setOnMouseEntered(e -> { if (sonidoHover != null) sonidoHover.play(); });
+    }
+
+    /**
+     * Registra el sonido de hover en todos los botones estáticos de la pantalla
+     * de combate (los que tienen {@code fx:id} en el FXML).
+     * Se llama una sola vez desde {@link #iniciarSesion(GameSession)}.
+     * Los botones dinámicos de los submenús reciben el sonido en sus propios
+     * métodos de construcción ({@link #construirSubmenuMagia} y
+     * {@link #construirSubmenuHabilidades}).
+     */
+    private void configurarSonidoBotones() {
+        agregarSonidoHover(btnAtacar);
+        agregarSonidoHover(btnObjetos);
+        agregarSonidoHover(btnHabilidad);
+        agregarSonidoHover(btnMagia);
+        agregarSonidoHover(btnHabilidades);
+        agregarSonidoHover(btnHuir);
+        agregarSonidoHover(btnContinuar);
+        agregarSonidoHover(btnPocionCuracion);
+        agregarSonidoHover(btnPocionMagica);
+        agregarSonidoHover(btnConfirmarHuida);
+        agregarSonidoHover(btnCancelarHuida);
     }
 
     /**
