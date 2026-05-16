@@ -6,6 +6,7 @@
 <?import javafx.geometry.*?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:id="rootPane"
            fx:controller="controlador.NombreController"
            stylesheets="@estilos.css"
            styleClass="root-pane">
@@ -46,7 +47,7 @@
 
         <Button fx:id="btnContinuar"
                 styleClass="btn-menu"
-                text="⚡  CONTINUAR"
+                text="CONTINUAR"
                 prefWidth="280" prefHeight="46"
                 onAction="#handleContinuar"/>
 

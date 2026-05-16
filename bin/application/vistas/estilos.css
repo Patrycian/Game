@@ -259,7 +259,7 @@
 
 /* ── HUD de la pantalla de juego ────────────────────────────────────── */
 .hud-barra {
-    -fx-background-color: #0d0d16;
+    -fx-background-color: rgba(13, 13, 22, 0.88);
     -fx-border-color:     #2e2840;
     -fx-border-width:     0 0 1.5 0;
 }
@@ -343,7 +343,7 @@
 
 /* ── Panel de combatiente (héroe / enemigo) ─────────────────── */
 .panel-combatiente {
-    -fx-background-color: #14141f;
+    -fx-background-color: rgba(20, 20, 31, 0.55);
     -fx-border-color:     #2e2840;
     -fx-border-width:     0 1.5 0 0;
 }
@@ -395,29 +395,23 @@
    Estilos estilo Pokémon para la pantalla de batalla
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Escena de batalla (fondo con gradiente) ────────────────── */
+/* ── Escena de batalla (fondo con gradiente semitransparente) ── */
 .escena-batalla {
     -fx-background-color: linear-gradient(to bottom,
-                          #1a1830 0%,
-                          #14141f 55%,
-                          #221830 100%);
+                          rgba(26,24,48,0.72)  0%,
+                          rgba(20,20,31,0.60) 55%,
+                          rgba(34,24,48,0.72) 100%);
     -fx-border-color: #2e2840;
     -fx-border-width: 0 0 2 0;
 }
 
 /* ── Plataformas circulares bajo los sprites ────────────────── */
 .plataforma-enemigo {
-    -fx-background-color: radial-gradient(center 50% 75%, radius 60%,
-                          rgba(200,168,75,0.18) 0%,
-                          rgba(200,168,75,0.05) 60%,
-                          transparent 100%);
+    -fx-background-color: transparent;
 }
 
 .plataforma-heroe {
-    -fx-background-color: radial-gradient(center 50% 75%, radius 60%,
-                          rgba(200,168,75,0.18) 0%,
-                          rgba(200,168,75,0.05) 60%,
-                          transparent 100%);
+    -fx-background-color: transparent;
 }
 
 /* ── Sprite del combatiente (icono grande) ──────────────────── */
@@ -428,7 +422,7 @@
 
 /* ── Cuadro horizontal de info (estilo Pokémon) ─────────────── */
 .caja-info-pokemon {
-    -fx-background-color: linear-gradient(to bottom, #1c1c2c, #14141f);
+    -fx-background-color: linear-gradient(to bottom, rgba(28,28,44,0.88), rgba(20,20,31,0.88));
     -fx-border-color: #c8a84b;
     -fx-border-width: 2;
     -fx-border-radius: 8;
@@ -479,7 +473,7 @@
 
 /* ── Caja de diálogo / menú de batalla (parte inferior) ─────── */
 .caja-dialogo-batalla {
-    -fx-background-color: linear-gradient(to bottom, #14141f, #0d0d16);
+    -fx-background-color: linear-gradient(to bottom, rgba(20,20,31,0.92), rgba(13,13,22,0.95));
     -fx-border-color: #c8a84b;
     -fx-border-width: 2 0 0 0;
 }
@@ -681,4 +675,121 @@
 .btn-batalla-barra-huir:pressed {
     -fx-background-color: #1a0e10;
     -fx-translate-x: 0;
+}
+
+/* ── Teclado virtual ─────────────────────────────────────────── */
+.panel-teclado {
+    -fx-background-color: linear-gradient(to bottom, #14141f, #0d0d16);
+    -fx-border-color: #c8a84b;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.35), 20, 0, 0, -4);
+}
+
+.btn-tecla {
+    -fx-background-color: #1a1a26;
+    -fx-border-color: #3a3050;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #c8a84b;
+    -fx-cursor: hand;
+    -fx-pref-width: 26;
+    -fx-pref-height: 24;
+}
+
+.btn-tecla:hover {
+    -fx-background-color: #221e35;
+    -fx-border-color: #c8a84b;
+    -fx-text-fill: #f0d070;
+    -fx-effect: dropshadow(gaussian, rgba(200,168,75,0.3), 6, 0, 0, 0);
+}
+
+.btn-tecla:pressed {
+    -fx-background-color: #1a1528;
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+.btn-tecla-borrar {
+    -fx-background-color: #2a1010;
+    -fx-border-color: #3a3050;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-font-size: 11px;
+    -fx-text-fill: #e08080;
+    -fx-cursor: hand;
+    -fx-pref-width: 42;
+    -fx-pref-height: 24;
+}
+
+.btn-tecla-borrar:hover {
+    -fx-background-color: #4a1515;
+    -fx-border-color: #e08080;
+    -fx-text-fill: #ff9090;
+    -fx-effect: dropshadow(gaussian, rgba(224,85,85,0.3), 6, 0, 0, 0);
+}
+
+.btn-tecla-borrar:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+.btn-tecla-espacio {
+    -fx-background-color: #1a1a26;
+    -fx-border-color: #3a3050;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8a7a60;
+    -fx-cursor: hand;
+    -fx-pref-width: 140;
+    -fx-pref-height: 24;
+}
+
+.btn-tecla-espacio:hover {
+    -fx-background-color: #221e35;
+    -fx-border-color: #c8a84b;
+    -fx-text-fill: #c8a84b;
+}
+
+.btn-tecla-espacio:pressed {
+    -fx-background-color: #1a1528;
+    -fx-scale-y: 0.95;
+}
+
+.btn-tecla-enter {
+    -fx-background-color: #1a2a1a;
+    -fx-border-color: #4caf50;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7ecc7e;
+    -fx-cursor: hand;
+    -fx-pref-width: 58;
+    -fx-pref-height: 24;
+}
+
+.btn-tecla-enter:hover {
+    -fx-background-color: #223a22;
+    -fx-border-color: #7ecc7e;
+    -fx-text-fill: #aaffaa;
+    -fx-effect: dropshadow(gaussian, rgba(76,175,80,0.35), 6, 0, 0, 0);
+}
+
+.btn-tecla-enter:pressed {
+    -fx-background-color: #162016;
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
 }

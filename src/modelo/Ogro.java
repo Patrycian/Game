@@ -1,24 +1,46 @@
 package modelo;
 
 /**
- * Ogro – fuerza bruta, mucha vida, defensa alta.
- * Sin habilidades especiales: es lento pero resistente.
+ * Ogro – enemigo tanque de la mazmorra.
  *
- * Usa los stats de {@link EnemigoDatos} si se proporcionan;
- * en caso contrario cae a los valores hardcodeados originales.
+ * <p>El Ogro es el enemigo más resistente de las fases normales (1-3).
+ * Su punto fuerte es la combinación de HP alto y defensa elevada, aunque
+ * su poder de ataque es moderado. No dispone de habilidades especiales ni
+ * de sistema de magia: todos sus turnos son ataques físicos básicos
+ * (heredados de {@link Enemigo#realizarAtaque}).</p>
+ *
+ * <p>Usa los stats de {@link EnemigoDatos} si se proporcionan desde BD;
+ * en caso contrario cae a los valores hardcodeados del constructor por defecto.</p>
+ *
+ * <h3>Stats por defecto</h3>
+ * <ul>
+ *   <li>HP: 100</li>
+ *   <li>DEF: 12</li>
+ *   <li>POD: 20</li>
+ * </ul>
  */
 public class Ogro extends Enemigo {
 
-    /** Constructor con stats cargados desde BD. */
+    /** Constructor con stats cargados desde BD.*/
     public Ogro(EnemigoDatos datos) {
         super(datos.getNombre(), datos.getPuntosGolpe(), datos.getDefensa(), datos.getPoder());
     }
 
-    /** Constructor por defecto (fallback si la BD no está disponible). */
+    /**
+     * Constructor por defecto con valores hardcodeados.
+     * Se usa como fallback si la BD no está disponible.
+     */
     public Ogro() {
         super("Ogro Brutal", /*hp*/ 100, /*def*/ 12, /*poder*/ 20);
     }
 
+    /** @return "OGRO" */
     @Override public String getTipo()  { return "OGRO"; }
+
+    /** @return emoji 👹 */
     @Override public String getIcono() { return "👹"; }
+
+    // El Ogro usa el ataque físico básico heredado de Enemigo:
+    //   daño = max(1, poder − defensa_del_héroe)
+    // No sobreescribe realizarAtaque().
 }

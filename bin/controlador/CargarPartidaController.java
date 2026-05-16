@@ -109,8 +109,7 @@ public class CargarPartidaController implements Initializable {
                 contenedorPartidas.getChildren().add(fila);
             }
         } catch (Exception e) {
-            String causa = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            lblEstado.setText("⚠ Error BD: " + causa);
+            lblEstado.setText("⚠ Error al conectar con la base de datos.");
             lblEstado.setVisible(true);
             e.printStackTrace();
         }
@@ -171,11 +170,8 @@ public class CargarPartidaController implements Initializable {
      * @param heroe   héroe con sus stats originales (HP se sobreescribe con el guardado)
      */
     private void reanudarPartida(Partida partida, Jugador jugador, Heroe heroe) {
-        // Restaurar HP y PM guardados al héroe
+        // Restaurar el HP guardado al héroe (puede diferir del HP máximo)
         heroe.setPuntosGolpe(partida.getHpActual());
-        if (heroe instanceof Magico) {
-            ((Magico) heroe).setPm(partida.getPmActual());
-        }
 
         GameSession sesion = new GameSession(jugador, heroe);
         sesion.setFaseActual(partida.getFaseActual());

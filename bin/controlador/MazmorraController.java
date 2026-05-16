@@ -8,13 +8,8 @@ import modelo.*;
 import motor.MotorCombate;
 import motor.MotorCombate.ResultadoCombate;
 
-import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
-import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -23,8 +18,6 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -35,7 +28,7 @@ import javafx.scene.media.MediaPlayer;
 
 import java.net.URL;
 import java.util.List;
-import java.util.Random;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 /**
@@ -103,8 +96,8 @@ public class MazmorraController implements Initializable {
     /** Imagen del sprite del héroe (PNG cargado desde {@link Heroe#getRutaImagen()}). */
     @FXML private ImageView   imgHeroe;
 
-    /** Imagen del sprite del enemigo. Se anima con {@link #animarGolpe(Node)} al recibir daño. */
-    @FXML private ImageView   imgEnemigo;
+    /** Emoji grande del enemigo. Se anima con {@link #animarGolpe(Node)} al recibir daño. */
+    @FXML private Label       lblIconoEnemigo;
 
     // ── FXML: caja de diálogo y menú ─────────────────────────────────────────
     /**
@@ -244,64 +237,9 @@ public class MazmorraController implements Initializable {
     /** Label numérico de PM del enemigo. Formato: "PM_actual / PM_max PM". */
     @FXML private Label       lblPmEnemigo;
 
-    // ── FXML: overlay de diálogo de huida ────────────────────────────────────
-    /**
-     * StackPane semiopaco que cubre el combate mientras el jugador decide si huir.
-     * Se muestra al pulsar HUIR y desaparece al confirmar o cancelar.
-     */
-    @FXML private StackPane overlayHuida;
-
-    /** Línea base "Probabilidad base: 40%" del desglose. */
-    @FXML private Label lblHuidaBase;
-
-    /** Modificador de HP del héroe (siempre visible). */
-    @FXML private Label lblHuidaVida;
-
-    /** Modificador de clase del héroe (oculto si el modificador es 0). */
-    @FXML private Label lblHuidaClase;
-
-    /** Modificador según el tipo de enemigo (oculto si el modificador es 0). */
-    @FXML private Label lblHuidaEnemigo;
-
-    /** Label "🎲 Probabilidad de éxito: N%" destacado en el panel. */
-    @FXML private Label lblHuidaProbFinal;
-
-    // ── FXML: pantalla de carga entre fases ──────────────────────────────────
-    /**
-     * StackPane opaco que cubre toda la ventana entre fases.
-     * Se muestra al pulsar "Siguiente Fase" y desaparece automáticamente
-     * cuando la barra de progreso llega al 100 %.
-     */
-    @FXML private StackPane   pantallaEntrefase;
-
-    /** Panel de partículas doradas animadas dentro del overlay de carga. */
-    @FXML private Pane        panelParticulasCarga;
-
-    /** Emoji grande que identifica la fase (⚔ para fases normales, 🐉 para el jefe). */
-    @FXML private Label       lblCargaIcono;
-
-    /** Label "FASE N" en el overlay de carga. */
-    @FXML private Label       lblCargaFase;
-
-    /** Label "— MAZMORRA —" o "— JEFE FINAL —" según la fase. */
-    @FXML private Label       lblCargaSubtitulo;
-
-    /** Frase temática / consejo de la fase mostrada durante la carga. */
-    @FXML private Label       lblCargaConsejo;
-
-    /** Barra de progreso animada que mide la duración del overlay de carga. */
-    @FXML private ProgressBar barCarga;
-
     // ── Estado ────────────────────────────────────────────────────────────────
     /** Sesión de juego activa; contiene jugador, héroe, fase y referencia a la partida en BD. */
     private GameSession  sesion;
-
-    /**
-     * Probabilidad de huida calculada en {@link #handleHuir()} y usada luego
-     * en {@link #handleConfirmarHuida()} cuando el jugador pulsa "Intentar huir".
-     * Se almacena como campo porque los dos métodos son handlers FXML separados.
-     */
-    private int probHuidaActual = 0;
 
     /** Motor de combate por turnos; gestiona ataques, contraataques y resultado. */
     private MotorCombate motor;
@@ -388,20 +326,7 @@ public class MazmorraController implements Initializable {
     private void prepararCombate() {
         int fase = sesion.getFaseActual();
         Heroe   heroe   = sesion.getHeroe();
-
-        // Si hay una partida guardada con un enemigo activo (HP > 0), restaurarlo;
-        // en caso contrario (nueva fase o enemigo derrotado) generarlo aleatoriamente.
-        Partida partidaActual = sesion.getPartida();
-        Enemigo enemigo;
-        if (partidaActual != null
-                && partidaActual.getTipoEnemigo() != null
-                && partidaActual.getHpEnemigo() > 0) {
-            enemigo = MotorCombate.generarEnemigoDeTipo(partidaActual.getTipoEnemigo());
-            enemigo.setPuntosGolpe(partidaActual.getHpEnemigo());
-            enemigo.setPm(partidaActual.getPmEnemigo()); // 0 si no usa magia, correcto igualmente
-        } else {
-            enemigo = MotorCombate.generarEnemigo(fase);
-        }
+        Enemigo enemigo = MotorCombate.generarEnemigo(fase);
 
         heroe.reiniciarHabilidad();   // la habilidad especial se recarga entre fases
         motor = new MotorCombate(heroe, enemigo);
@@ -421,15 +346,9 @@ public class MazmorraController implements Initializable {
         }
         actualizarBarraHeroe();
 
-        // ── Enemigo: nombre, imagen y barra de vida
+        // ── Enemigo: nombre, icono y barra de vida
         lblNombreEnemigo.setText(enemigo.getNombre() + " (" + enemigo.getTipo() + ")");
-        try {
-            Image imgEnemSrc = new Image(getClass().getResourceAsStream(enemigo.getRutaImagen()));
-            imgEnemigo.setImage(imgEnemSrc);
-        } catch (Exception e) {
-            // Si la imagen no carga, el juego continúa sin el sprite (no es un error fatal)
-            e.printStackTrace();
-        }
+        lblIconoEnemigo.setText(enemigo.getIcono());
         actualizarBarraEnemigo();
 
         // ── Barra de PM del enemigo (solo para Saga y Dragón, que tienen pmMax > 0)
@@ -566,162 +485,28 @@ public class MazmorraController implements Initializable {
     }
 
     /**
-     * Maneja el botón "HUIR": calcula la probabilidad de huida y muestra el
-     * overlay in-game con el desglose de modificadores.
-     *
-     * <p>La probabilidad base (40 %) se modifica por tres factores acumulativos:</p>
-     * <ul>
-     *   <li><b>HP del héroe:</b> &lt;25 % → +20 %; &lt;50 % → +10 %; ≥50 % → ±0 %.</li>
-     *   <li><b>Clase:</b> Guerrero −10 % (orgullo); Mago +5 % (escurridizo); Clérigo ±0 %.</li>
-     *   <li><b>Enemigo:</b> Goblin +10 %; Ogro −5 %; Saga −10 %; Dragón −20 %.</li>
-     * </ul>
-     *
-     * <p>La probabilidad resultante se clampea a [5 %, 90 %] y se almacena en
-     * {@link #probHuidaActual} para que {@link #handleConfirmarHuida()} la use
-     * al tirar el dado.</p>
+     * Maneja la pulsación del botón "HUIR".
+     * Muestra un diálogo de confirmación con estilo oscuro del juego.
+     * Si el jugador confirma, guarda la partida en BD y vuelve al menú principal.
+     * La partida queda en estado {@code EN_CURSO} para poder reanudarla después.
      */
     @FXML
     private void handleHuir() {
         if (combateTerminado) return;
 
-        Heroe   heroe   = sesion.getHeroe();
-        Enemigo enemigo = motor.getEnemigo();
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Huida");
+        alert.setHeaderText("🏃  ¿Huir del combate?");
+        alert.setContentText("La partida se guardará y volverás al menú principal.");
+        alert.getDialogPane().getStylesheets().add(
+                getClass().getResource("/application/vistas/estilos.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("dialog-oscuro");
 
-        // ── Modificador por HP ────────────────────────────────────────────────
-        int pctVida = (int)((heroe.getPuntosGolpe() * 100.0) / heroe.getPuntosGolpeMax());
-        int modVida; String msgVida;
-        if (pctVida < 25) {
-            modVida = 20; msgVida = "¡Estás malherido! Mayor probabilidad de huir.  (+20%)";
-        } else if (pctVida < 50) {
-            modVida = 10; msgVida = "Estás herido, pero aún puedes luchar.  (+10%)";
-        } else {
-            modVida = 0;  msgVida = "Aún puedes seguir luchando...  (±0%)";
+        Optional<ButtonType> resp = alert.showAndWait();
+        if (resp.isPresent() && resp.get() == ButtonType.OK) {
+            guardarPartida();
+            navegarAMenu();
         }
-
-        // ── Modificador por clase ─────────────────────────────────────────────
-        int modClase; String msgClase;
-        if (heroe instanceof Guerrero) {
-            modClase = -10; msgClase = "Los guerreros no huyen fácilmente.  (−10%)";
-        } else if (heroe instanceof Mago) {
-            modClase = 5;   msgClase = "Los magos son escurridizos.  (+5%)";
-        } else {
-            modClase = 0;   msgClase = null; // Clérigo: sin modificador
-        }
-
-        // ── Modificador por tipo de enemigo ───────────────────────────────────
-        int modEnemigo; String msgEnemigo;
-        switch (enemigo.getTipo().toUpperCase()) {
-            case "GOBLIN": modEnemigo =  10; msgEnemigo = "Los goblins son fáciles de esquivar.  (+10%)"; break;
-            case "OGRO":   modEnemigo =  -5; msgEnemigo = "Los ogros son implacables.  (−5%)";            break;
-            case "SAGA":   modEnemigo = -10; msgEnemigo = "La Saga controla el campo de batalla.  (−10%)"; break;
-            case "DRAGON": modEnemigo = -20; msgEnemigo = "¡Nadie escapa de un Dragón fácilmente!  (−20%)"; break;
-            default:       modEnemigo =   0; msgEnemigo = null;
-        }
-
-        probHuidaActual = Math.max(5, Math.min(90, 40 + modVida + modClase + modEnemigo));
-
-        // ── Rellenar labels del overlay ───────────────────────────────────────
-        lblHuidaBase.setText("Probabilidad base: 40%");
-        lblHuidaVida.setText(msgVida);
-
-        if (msgClase != null) {
-            lblHuidaClase.setText(msgClase);
-            lblHuidaClase.setVisible(true);
-            lblHuidaClase.setManaged(true);
-        } else {
-            lblHuidaClase.setVisible(false);
-            lblHuidaClase.setManaged(false);
-        }
-
-        if (msgEnemigo != null) {
-            lblHuidaEnemigo.setText(msgEnemigo);
-            lblHuidaEnemigo.setVisible(true);
-            lblHuidaEnemigo.setManaged(true);
-        } else {
-            lblHuidaEnemigo.setVisible(false);
-            lblHuidaEnemigo.setManaged(false);
-        }
-
-        lblHuidaProbFinal.setText("🎲 Probabilidad de éxito: " + probHuidaActual + "%");
-
-        // ── Mostrar overlay ───────────────────────────────────────────────────
-        overlayHuida.setVisible(true);
-        overlayHuida.setManaged(true);
-    }
-
-    /**
-     * Ejecuta el intento de huida cuando el jugador pulsa "✅ Intentar huir".
-     *
-     * <p>Cierra el overlay, tira un dado (1–100) y lo compara con {@link #probHuidaActual}:</p>
-     * <ul>
-     *   <li><b>Éxito</b> (tirada ≤ prob): mensaje en log, botones bloqueados, navega al menú.</li>
-     *   <li><b>Fracaso</b> (tirada &gt; prob): el enemigo ataca con la mitad de su poder como
-     *       penalización; si el héroe muere, se activa la derrota.</li>
-     * </ul>
-     */
-    @FXML
-    private void handleConfirmarHuida() {
-        overlayHuida.setVisible(false);
-        overlayHuida.setManaged(false);
-
-        Heroe   heroe   = sesion.getHeroe();
-        Enemigo enemigo = motor.getEnemigo();
-        int tirada = new Random().nextInt(100) + 1;
-
-        if (tirada <= probHuidaActual) {
-            // ── Éxito ─────────────────────────────────────────────────────────
-            agregarLog("🏃 " + heroe.getNombre() + " intenta huir..."
-                    + "  (tirada: " + tirada + " ≤ " + probHuidaActual + ")");
-            agregarLog("✅ ¡Huida exitosa! Escapas del combate.");
-            agregarLog("");
-
-            btnAtacar.setDisable(true);
-            btnHabilidad.setDisable(true);
-            btnMagia.setDisable(true);
-            btnHabilidades.setDisable(true);
-            btnObjetos.setDisable(true);
-            btnHuir.setDisable(true);
-
-            PauseTransition pausa = new PauseTransition(Duration.seconds(1.2));
-            pausa.setOnFinished(e -> navegarAMenu());
-            pausa.play();
-
-        } else {
-            // ── Fracaso: penalización (golpe por la espalda, sin reducción por defensa) ──
-            agregarLog("🏃 " + heroe.getNombre() + " intenta huir..."
-                    + "  (tirada: " + tirada + " > " + probHuidaActual + ")");
-            agregarLog("❌ ¡No has podido huir! El enemigo te alcanza.");
-
-            int danioPenalizacion = Math.max(1, enemigo.getPoder() / 2);
-            heroe.recibirDanio(danioPenalizacion);
-            agregarLog("💥 " + enemigo.getNombre() + " te golpea por la espalda por "
-                    + danioPenalizacion + " de daño!");
-            agregarLog("   " + heroe.getNombre() + ": " + heroe.getPuntosGolpe()
-                    + " / " + heroe.getPuntosGolpeMax() + " HP");
-            agregarLog("");
-
-            PauseTransition espera = new PauseTransition(Duration.millis(200));
-            espera.setOnFinished(e -> animarGolpe(imgHeroe));
-            espera.play();
-
-            actualizarBarraHeroe();
-            if (heroe instanceof Magico) actualizarBarraPm();
-
-            if (!heroe.estaVivo()) {
-                combateTerminado = true;
-                procesarFinCombate(ResultadoCombate.DERROTA);
-            }
-        }
-    }
-
-    /**
-     * Cancela el intento de huida cerrando el overlay.
-     * El combate continúa sin consumir el turno del héroe.
-     */
-    @FXML
-    private void handleCancelarHuida() {
-        overlayHuida.setVisible(false);
-        overlayHuida.setManaged(false);
     }
 
     /**
@@ -733,11 +518,7 @@ public class MazmorraController implements Initializable {
     private void handleContinuar() {
         if (sesion.hayMasFases()) {
             sesion.avanzarFase();
-            // Checkpoint: guardar nueva fase y estadísticas actuales del héroe
-            guardarAlAvanzarFase();
-            // Mostrar pantalla de carga; al terminar, llamará a prepararCombate()
-            detenerMusica();
-            mostrarPantallaCarga();
+            prepararCombate();
         } else {
             // El jugador ha superado las 4 fases → victoria total
             navegarAResultado(true);
@@ -816,7 +597,7 @@ public class MazmorraController implements Initializable {
                 // Animar golpe al enemigo, EXCEPTO cuando el Clérigo usa su curación
                 // (en ese caso no ataca al enemigo, solo se cura a sí mismo)
                 if (!(sesion.getHeroe() instanceof Clerigo) || accion != AccionHeroe.HABILIDAD) {
-                    animarGolpe(imgEnemigo);
+                    animarGolpe(lblIconoEnemigo);
                 }
                 // Si el enemigo sobrevivió al ataque del héroe, también contraataca
                 if (motor.getEnemigo().estaVivo()) {
@@ -952,12 +733,12 @@ public class MazmorraController implements Initializable {
 
         boolean victoria = resultado == ResultadoCombate.VICTORIA;
 
-        // Asegurar que la partida existe en BD para poder registrar el combate.
-        // Este INSERT no es un checkpoint de progreso; el guardado real ocurre
-        // en handleContinuar() → guardarAlAvanzarFase().
-        asegurarPartidaCreada();
-        if (sesion.getPartida() != null) {
-            try {
+        // Registrar el combate en BD (historial de combates de la partida)
+        try {
+            guardarOActualizarPartida();
+            // Comprobar que la partida fue creada antes de registrar el combate;
+            // si guardarOActualizarPartida() falló, sesion.getPartida() puede ser null.
+            if (sesion.getPartida() != null) {
                 CombateDAO.registrar(
                     sesion.getPartida().getId(),
                     sesion.getFaseActual(),
@@ -965,9 +746,9 @@ public class MazmorraController implements Initializable {
                     victoria,
                     motor.getTurno()
                 );
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         if (victoria) {
@@ -1343,178 +1124,51 @@ public class MazmorraController implements Initializable {
         }
     }
 
-    // ── Pantalla de carga entre fases ────────────────────────────────────────
-
-    /**
-     * Muestra el overlay de carga entre fases durante 2,5 segundos.
-     *
-     * <p>Configura el texto, el color y las partículas según si la fase siguiente
-     * es normal (dorado) o el jefe final (rojo). La barra de progreso se anima
-     * con un {@link Timeline}; al terminar, oculta el overlay y llama a
-     * {@link #prepararCombate()} para arrancar el siguiente combate.</p>
-     *
-     * <p>Se llama desde {@link #handleContinuar()} después de haber avanzado
-     * la fase y guardado el checkpoint, con la música ya detenida.</p>
-     */
-    private void mostrarPantallaCarga() {
-        int     fase    = sesion.getFaseActual();
-        boolean esFinal = (fase == 4);
-
-        // ── Texto e iconografía ───────────────────────────────────────────────
-        lblCargaIcono.setText(esFinal ? "🐉" : "⚔");
-        lblCargaFase.setText("FASE " + fase);
-        lblCargaSubtitulo.setText(esFinal ? "— JEFE FINAL —" : "— MAZMORRA —");
-        lblCargaConsejo.setText(consejoFase(fase));
-
-        // ── Color temático: dorado para fases normales, rojo para el jefe ────
-        String color  = esFinal ? "#e05555"                : "#c8a84b";
-        String shadow = esFinal ? "rgba(224,85,85,0.7)"   : "rgba(200,168,75,0.7)";
-
-        lblCargaFase.setStyle(
-            "-fx-font-family: Georgia; -fx-font-size: 52px; -fx-font-weight: bold;"
-            + " -fx-text-fill: " + color + ";"
-            + " -fx-effect: dropshadow(gaussian, " + shadow + ", 25, 0, 0, 0);");
-        lblCargaSubtitulo.setStyle(
-            "-fx-font-family: Georgia; -fx-font-size: 17px; -fx-font-style: italic;"
-            + " -fx-text-fill: " + color + ";");
-        barCarga.setStyle("-fx-accent: " + color + ";");
-
-        // ── Partículas y visibilidad ──────────────────────────────────────────
-        generarParticulasCarga();
-        barCarga.setProgress(0);
-        pantallaEntrefase.setVisible(true);
-        pantallaEntrefase.setManaged(true);
-
-        // ── Timeline: animar la barra de progreso durante 2,5 s ──────────────
-        Timeline tl = new Timeline(
-            new KeyFrame(Duration.ZERO,         new KeyValue(barCarga.progressProperty(), 0.0)),
-            new KeyFrame(Duration.seconds(2.5), new KeyValue(barCarga.progressProperty(), 1.0))
-        );
-        tl.setOnFinished(ev -> {
-            pantallaEntrefase.setVisible(false);
-            pantallaEntrefase.setManaged(false);
-            prepararCombate(); // arranca el combate de la nueva fase
-        });
-        tl.play();
-    }
-
-    /**
-     * Devuelve la frase temática que se muestra en el overlay de carga
-     * para cada fase (2, 3 y 4). Para la fase 1 no hay carga previa.
-     *
-     * @param fase número de fase (2–4)
-     * @return cadena con el consejo/frase, o cadena vacía si la fase no tiene
-     */
-    private String consejoFase(int fase) {
-        switch (fase) {
-            case 2: return "«La mazmorra se vuelve más peligrosa. Conserva tus recursos para los momentos de mayor necesidad.»";
-            case 3: return "«Los monstruos de las profundidades no conocen la piedad. Mantén la guardia alta.»";
-            case 4: return "«El Dragón te aguarda en lo más profundo de la mazmorra. Esta es tu última oportunidad de demostrar tu valía.»";
-            default: return "";
-        }
-    }
-
-    /**
-     * Genera 60 partículas doradas animadas dentro del panel de carga.
-     * Usa la misma lógica de parpadeo que los menús principales.
-     * Se llama cada vez que se muestra el overlay para renovar las partículas.
-     */
-    private void generarParticulasCarga() {
-        panelParticulasCarga.getChildren().clear();
-        Random rnd = new Random(42);
-        for (int i = 0; i < 60; i++) {
-            double x = rnd.nextDouble() * 900, y = rnd.nextDouble() * 650;
-            double r = 0.5 + rnd.nextDouble() * 1.2, o = 0.2 + rnd.nextDouble() * 0.5;
-            Circle c = new Circle(x, y, r, Color.web("#c8a84b", o));
-            FadeTransition ft = new FadeTransition(Duration.seconds(2 + rnd.nextDouble() * 3), c);
-            ft.setFromValue(o * 0.3); ft.setToValue(o);
-            ft.setAutoReverse(true); ft.setCycleCount(Animation.INDEFINITE);
-            ft.setDelay(Duration.seconds(rnd.nextDouble() * 4)); ft.play();
-            panelParticulasCarga.getChildren().add(c);
-        }
-    }
-
     // ── Guardar partida ───────────────────────────────────────────────────────
 
     /**
-     * Devuelve los PM actuales del héroe si es {@link Magico}, o 0 si no usa magia.
-     * Centraliza la comprobación para no duplicarla en cada método de guardado.
-     */
-    private int pmActualHeroe() {
-        Heroe h = sesion.getHeroe();
-        return (h instanceof Magico) ? ((Magico) h).getPm() : 0;
-    }
-
-    /**
-     * Garantiza que existe una fila en {@code partidas} para esta sesión.
-     * Si ya existe, no hace nada. Si no, realiza un INSERT con el estado actual
-     * del combate (fase, HP/PM del héroe, tipo y HP/PM del enemigo activo).
+     * Guarda o actualiza la partida en BD según si ya tiene un id asignado.
      *
-     * <p>Solo se llama desde {@link #procesarFinCombate} para que
-     * {@link dao.CombateDAO} pueda usar el id de partida como clave foránea.
-     * El guardado de progreso real (checkpoint) se realiza en
-     * {@link #guardarAlAvanzarFase()}.</p>
+     * <p>Si es la primera vez que se guarda ({@link GameSession#getPartida()} es null),
+     * realiza un INSERT y asigna el id generado al objeto {@link Partida} de la sesión.
+     * En llamadas posteriores, realiza un UPDATE con la fase y el HP actuales.</p>
+     *
+     * <p>También sincroniza el HP del personaje en la tabla {@code personajes}
+     * para que al reanudar la partida se restaure el HP correcto.</p>
+     *
+     * @throws Exception si ocurre un error de acceso a la BD
      */
-    private void asegurarPartidaCreada() {
-        if (sesion.getPartida() != null) return;
-        try {
-            Heroe heroe = sesion.getHeroe();
+    private void guardarOActualizarPartida() throws Exception {
+        Heroe heroe = sesion.getHeroe();
+
+        if (sesion.getPartida() == null) {
+            // Primera vez: crear la fila en BD
             Partida p = new Partida(
                 sesion.getJugador().getId(),
                 heroe.getId(),
                 sesion.getFaseActual(),
                 heroe.getPuntosGolpe()
             );
-            p.setPmActual(pmActualHeroe());
-            p.setTipoEnemigo(motor.getEnemigo().getTipo());
-            p.setHpEnemigo(motor.getEnemigo().getPuntosGolpe());
-            p.setPmEnemigo(motor.getEnemigo().getPm());
             PartidaDAO.insertar(p);
-            sesion.setPartida(p);
-            PersonajeDAO.actualizarHp(heroe.getId(), heroe.getPuntosGolpe());
-        } catch (Exception e) {
-            e.printStackTrace();
+            sesion.setPartida(p); // asociar la partida a la sesión para llamadas futuras
+        } else {
+            // Actualizar la fila existente con la fase y HP actuales
+            Partida p = sesion.getPartida();
+            p.setFaseActual(sesion.getFaseActual());
+            p.setHpActual(heroe.getPuntosGolpe());
+            PartidaDAO.actualizar(p);
         }
+        // Sincronizar HP del personaje en su propia tabla
+        PersonajeDAO.actualizarHp(heroe.getId(), heroe.getPuntosGolpe());
     }
 
     /**
-     * Checkpoint de progreso: guarda la nueva fase y las estadísticas actuales
-     * del héroe justo antes de empezar el combate de esa fase.
-     *
-     * <p>Los campos de enemigo se limpian (null / 0) porque en la nueva fase
-     * el enemigo aún no ha sido generado; al cargar la partida se generará
-     * uno aleatorio fresco.</p>
-     *
-     * <p>Se llama únicamente desde {@link #handleContinuar()} tras
-     * {@link GameSession#avanzarFase()}, nunca al huir.</p>
+     * Wrapper sin checked exception para llamar desde flujos donde no se puede
+     * propagar el error (p. ej. al huir). Los errores se imprimen en consola.
      */
-    private void guardarAlAvanzarFase() {
+    private void guardarPartida() {
         try {
-            Heroe heroe = sesion.getHeroe();
-            if (sesion.getPartida() == null) {
-                // No hubo combate anterior registrado: crear la fila ahora
-                Partida p = new Partida(
-                    sesion.getJugador().getId(),
-                    heroe.getId(),
-                    sesion.getFaseActual(),
-                    heroe.getPuntosGolpe()
-                );
-                p.setPmActual(pmActualHeroe());
-                // Enemigo aún no generado → campos vacíos (generarán uno fresco al cargar)
-                PartidaDAO.insertar(p);
-                sesion.setPartida(p);
-            } else {
-                Partida p = sesion.getPartida();
-                p.setFaseActual(sesion.getFaseActual());
-                p.setHpActual(heroe.getPuntosGolpe());
-                p.setPmActual(pmActualHeroe());
-                // Limpiar datos del enemigo anterior: la nueva fase empieza con enemigo fresco
-                p.setTipoEnemigo(null);
-                p.setHpEnemigo(0);
-                p.setPmEnemigo(0);
-                PartidaDAO.actualizar(p);
-            }
-            PersonajeDAO.actualizarHp(heroe.getId(), heroe.getPuntosGolpe());
+            guardarOActualizarPartida();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1731,8 +1385,7 @@ public class MazmorraController implements Initializable {
     private void detenerMusica() {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
-            mediaPlayer.dispose(); // liberar hilos nativos de audio
-            mediaPlayer = null;
         }
     }
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 

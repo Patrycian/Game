@@ -128,6 +128,32 @@ public class MotorCombate {
     // ── Fábrica de enemigos aleatorios ────────────────────────────────────────
 
     /**
+     * Crea un enemigo del tipo concreto indicado, usando los datos del catálogo de BD
+     * si están disponibles. Se usa al reanudar una partida guardada para restaurar
+     * el mismo tipo de enemigo que estaba activo cuando el jugador huyó.
+     *
+     * <p>Si el tipo no coincide con ningún enemigo conocido, se genera un enemigo
+     * aleatorio de fase 1 como fallback seguro.</p>
+     *
+     * @param tipo nombre del tipo en mayúsculas ("GOBLIN", "OGRO", "SAGA", "DRAGON")
+     * @return enemigo del tipo solicitado con HP al máximo (el HP guardado se aplica
+     *         externamente tras la llamada con {@code enemigo.setPuntosGolpe(hp)})
+     */
+    public static Enemigo generarEnemigoDeTipo(String tipo) {
+        Map<String, EnemigoDatos> cat = EnemigoDAO.getCatalogo();
+        switch (tipo.toUpperCase()) {
+            case "DRAGON": { EnemigoDatos d = cat.get("DRAGON"); return d != null ? new Dragon(d)  : new Dragon();  }
+            case "OGRO":   { EnemigoDatos d = cat.get("OGRO");   return d != null ? new Ogro(d)    : new Ogro();    }
+            case "GOBLIN": { EnemigoDatos d = cat.get("GOBLIN"); return d != null ? new Goblin(d)  : new Goblin();  }
+            case "SAGA":   { EnemigoDatos d = cat.get("SAGA");   return d != null ? new Saga(d)    : new Saga();    }
+            default: {     // tipo desconocido (BD corrupta) → Goblin como fallback más seguro
+                EnemigoDatos d = cat.get("GOBLIN");
+                return d != null ? new Goblin(d) : new Goblin();
+            }
+        }
+    }
+
+    /**
      * Genera el enemigo correspondiente a la fase indicada.
      * Intenta cargar los stats desde la BD mediante {@link EnemigoDAO}.
      * Si la BD no está disponible, usa los constructores por defecto (valores hardcodeados).
