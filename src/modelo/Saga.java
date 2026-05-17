@@ -41,6 +41,17 @@ public class Saga extends Enemigo {
     @Override public String getTipo()  { return "SAGA"; }
     @Override public String getIcono() { return "🧟"; }
 
+    // ── Drops ─────────────────────────────────────────────────────────────────
+
+    /**
+     * La Saga tiene un 35 % de probabilidad de soltar una Poción Mágica.
+     * Sus restos contienen esencia arcana que el héroe puede absorber.
+     */
+    @Override
+    public TipoDrop generarDrop() {
+        return RNG.nextInt(100) < 35 ? TipoDrop.POCION_MAGICA : null;
+    }
+
     // ── IA de combate ─────────────────────────────────────────────────────────
 
     /**

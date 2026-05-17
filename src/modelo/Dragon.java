@@ -23,7 +23,7 @@ public class Dragon extends Enemigo {
 
     private int turnoActual;
 
-    // ── Constructores ─────────────────────────────────────────────────────────
+    // ── Constructor ─────────────────────────────────────────────────────────
 
     /** Constructor con stats cargados desde BD. */
     public Dragon(EnemigoDatos datos) {
@@ -38,12 +38,12 @@ public class Dragon extends Enemigo {
         this.turnoActual = 0;
     }
 
-    // ── Identificación ────────────────────────────────────────────────────────
+    // ── Getters y setters ─────────────────────────────────────────────────────
 
     @Override public String getTipo()  { return "DRAGON"; }
     @Override public String getIcono() { return "🐉"; }
 
-    // ── IA de combate ─────────────────────────────────────────────────────────
+    // ── Métodos ─────────────────────────────────────────────────────────
 
     /**
      * Cada 3 turnos intenta usar <b>Aliento de Fuego</b> (coste {@value #COSTE_ALIENTO} PM):

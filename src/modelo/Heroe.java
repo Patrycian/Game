@@ -1,89 +1,76 @@
 package modelo;
 
+import java.util.List;
+
 /**
- * Superclase abstracta de los héroes jugables. Añade la habilidad especial
- * (usable una vez por combate) y el vínculo con el jugador propietario.
+ * Superclase abstracta de los héroes jugables.
+ *
+ * <p>Cada subclase define sus atributos en su propio constructor y proporciona
+ * la lista de {@link Habilidad} disponibles en combate a través de
+ * {@link #getHabilidades()}. El controlador itera esa lista de forma uniforme,
+ * sin necesidad de {@code instanceof} ni enums de acción específicos.</p>
  */
 public abstract class Heroe extends Personaje {
 
-	private String nombreHabilidad;
-	private String descHabilidad;
+    // ── Variables ─────────────────────────────────────────────────────────────
 
-	/**
-	 * Mensaje de defensa pendiente: lo registra una subclase cuando absorbe o
-	 * reduce un ataque entrante (p. ej. Escudo Arcano del Mago).
-	 * El motor lo consume para sustituir el mensaje de golpe del enemigo.
-	 */
-	private String mensajeDefensa = null;
+    /**
+     * Mensaje de defensa pendiente: lo registra una subclase cuando absorbe o
+     * reduce un ataque entrante (p. ej. Escudo Arcano del Mago). El motor lo
+     * consume para sustituir el mensaje de golpe del enemigo en el log.
+     */
+    private String mensajeDefensa = null;
 
-	protected Heroe(String nombre, int puntosGolpe, int defensa, int poder, String nombreHabilidad,
-			String descHabilidad) {
-		super(nombre, puntosGolpe, defensa, poder);
-		this.nombreHabilidad = nombreHabilidad;
-		this.descHabilidad = descHabilidad;
-	}
+    // ── Constructor ───────────────────────────────────────────────────────────
 
-	// ── Habilidad especial ────────────────────────────────────────────────────
+    protected Heroe(String nombre, int puntosGolpe, int defensa, int poder) {
+        super(nombre, puntosGolpe, defensa, poder);
+    }
 
-	/**
-	 * Activa la habilidad especial del héroe sobre el objetivo indicado.
-	 *
-	 * @param objetivo el personaje sobre el que se aplica (puede ser el enemigo o
-	 *                 él mismo)
-	 * @return descripción de lo que ocurrió
-	 */
-	public final String usarHabilidad(Personaje objetivo) {
-		return aplicarHabilidad(objetivo);
-	}
+    // ── Getters y setters ─────────────────────────────────────────────────────
 
-	/**
-	 * Implementación concreta de la habilidad especial. Las subclases la definen y
-	 * devuelven un texto descriptivo del efecto.
-	 */
-	protected abstract String aplicarHabilidad(Personaje objetivo);
+    /** @return ruta del recurso de imagen del héroe */
+    public abstract String getRutaImagen();
 
-	/**
-	 * Gancho que se llama al inicio de cada nueva fase.
-	 * La implementación base no hace nada; las subclases pueden sobreescribirlo
-	 * para revertir efectos temporales (p. ej. Bendición Sagrada del Clérigo).
-	 */
-	public void reiniciarHabilidad() { }
+    /**
+     * Devuelve la lista de habilidades disponibles para este héroe en combate.
+     * Cada {@link Habilidad} encapsula su nombre, descripción, coste y lógica
+     * de ejecución, de modo que el controlador puede tratarlas de forma uniforme.
+     *
+     * @return lista inmutable de habilidades del héroe
+     */
+    public abstract List<Habilidad> getHabilidades();
 
-	public String getNombreHabilidad() {
-		return nombreHabilidad;
-	}
+    // ── Métodos ───────────────────────────────────────────────────────────────
 
-	public String getDescHabilidad() {
-		return descHabilidad;
-	}
+    /**
+     * Reinicia el estado de las habilidades al inicio de una nueva fase.
+     * Las subclases lo sobreescriben si tienen estado que limpiar (buffs activos,
+     * contadores de uso, etc.).
+     */
+    public void reiniciarHabilidad() {
+    }
 
-	// ── Mecanismo de absorción de daño ────────────────────────────────────────
+    /**
+     * Permite a una subclase registrar un mensaje que sustituye al del ataque
+     * enemigo en el log de combate (ejemplo: "¡Escudo Arcano absorbió el golpe!").
+     *
+     * @param mensaje texto descriptivo de la defensa activada
+     */
+    protected void registrarMensajeDefensa(String mensaje) {
+        this.mensajeDefensa = mensaje;
+    }
 
-	/**
-	 * Permite a una subclase registrar un mensaje que sustituirá al del ataque
-	 * enemigo en el log de combate (p. ej. "¡Escudo Arcano absorbió el golpe!").
-	 * Se llama típicamente desde un override de {@link #recibirAtaque}.
-	 */
-	protected void registrarMensajeDefensa(String msg) {
-		this.mensajeDefensa = msg;
-	}
-
-	/**
-	 * El motor llama a este método tras {@code enemigo.realizarAtaque(heroe)}.
-	 * Si devuelve un valor no nulo, ese texto reemplaza el mensaje del ataque en el log.
-	 * Se consume al leerlo (no persiste entre llamadas).
-	 *
-	 * @return mensaje de defensa registrado, o {@code null} si no hay ninguno
-	 */
-	public String consumirMensajeDefensa() {
-		String m = mensajeDefensa;
-		mensajeDefensa = null;
-		return m;
-	}
-
-	/**
-	 * Devuelve la ruta del recurso de imagen del héroe (PNG en /recursos/imagen/).
-	 * Cada subclase debe implementarlo con su propio archivo.
-	 */
-	public abstract String getRutaImagen();
+    /**
+     * El motor llama a este método tras {@code enemigo.realizarAtaque(heroe)}.
+     * Si devuelve un valor no nulo, ese texto reemplaza el mensaje del ataque en el log.
+     * Se consume al leerlo para que no persista entre llamadas.
+     *
+     * @return el mensaje de defensa registrado, o {@code null} si no hay ninguno
+     */
+    public String consumirMensajeDefensa() {
+        String mensaje = mensajeDefensa;
+        mensajeDefensa  = null;
+        return mensaje;
+    }
 }

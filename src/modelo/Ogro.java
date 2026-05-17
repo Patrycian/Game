@@ -43,4 +43,13 @@ public class Ogro extends Enemigo {
     // El Ogro usa el ataque físico básico heredado de Enemigo:
     //   daño = max(1, poder − defensa_del_héroe)
     // No sobreescribe realizarAtaque().
+
+    /**
+     * El Ogro tiene un 30 % de probabilidad de soltar una Poción de Curación.
+     * Su corpulencia a veces esconde provisiones entre sus pieles.
+     */
+    @Override
+    public TipoDrop generarDrop() {
+        return RNG.nextInt(100) < 30 ? TipoDrop.POCION_VIDA : null;
+    }
 }

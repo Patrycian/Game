@@ -179,7 +179,7 @@ public class MenuController implements Initializable {
     private void animarEntrada() {
         Platform.runLater(() -> {
             var panel = btnNuevaPartida.getParent(); // VBox que contiene los botones
-            if (panel == null) return;
+            if (panel == null) { return; }
             panel.setOpacity(0);       // inicialmente invisible
             panel.setTranslateY(20);   // desplazado 20 px hacia abajo
 
@@ -201,7 +201,7 @@ public class MenuController implements Initializable {
     private void inicializarSonidoHover() {
         try {
             URL url = getClass().getResource("/recursos/audio/cursor.wav");
-            if (url != null) sonidoHover = new AudioClip(url.toString());
+            if (url != null) { sonidoHover = new AudioClip(url.toString()); }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -215,7 +215,7 @@ public class MenuController implements Initializable {
      */
     private void agregarSonidoHover(Button btn) {
         btn.setOnMouseEntered(e -> {
-            if (sonidoHover != null) sonidoHover.play();
+            if (sonidoHover != null) { sonidoHover.play(); }
         });
     }
 

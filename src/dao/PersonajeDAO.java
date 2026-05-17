@@ -51,7 +51,7 @@ public class PersonajeDAO {
             ps.setInt(5, heroe.getPoder());
             ps.setInt(6, idJugador);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) heroe.setId(rs.getInt("id"));
+                if (rs.next()) { heroe.setId(rs.getInt("id")); }
             }
         }
     }
@@ -73,7 +73,7 @@ public class PersonajeDAO {
         try (PreparedStatement ps = ConexionDB.getConexion().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapearHeroe(rs);
+                if (rs.next()) { return mapearHeroe(rs); }
             }
         }
         return null;

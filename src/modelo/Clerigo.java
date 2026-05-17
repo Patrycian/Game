@@ -1,45 +1,67 @@
 package modelo;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Clérigo – soporte y aguante. Defensa media, poder bajo.
- * Habilidad especial: Curación Divina (recupera el 40 % de su vida máxima).
- * <p>
- * Extiende {@link Magico}: tiene 20 PM y conoce dos habilidades mágicas.
+ *
+ * <h3>Habilidades disponibles en combate:</h3>
+ * <ul>
+ *   <li><b>Curación Divina</b>: recupera el 40 % de la vida máxima del clérigo.
+ *       Coste: {@value #COSTE_CURACION} PM.</li>
+ *   <li><b>Bendición Sagrada</b>: aumenta la defensa en {@value #BONUS_DEF} puntos
+ *       durante el resto del combate. Usable una vez por fase.
+ *       Coste: {@value #COSTE_BENDICION} PM.</li>
+ * </ul>
  */
 public class Clerigo extends Magico {
 
-    // ── Bendición Sagrada ────────────────────────────────────────────────────
-    private static final int BONUS_DEF    = 8;
+    // ── Variables ─────────────────────────────────────────────────────────────
+
+    private static final int BONUS_DEF       = 8;
     private static final int COSTE_BENDICION = 7;
+    private static final int COSTE_CURACION  = 10;
+
     private boolean bendicionActiva = false;
 
-    public Clerigo(String nombre) {
-        super(nombre,
-              /*hp*/    100,
-              /*def*/    12,
-              /*poder*/  14,
-              /*pm*/     20,
-              "Curación Divina",
-              "Invoca la gracia divina para recuperar el 40 % de tu vida máxima.");
+    // ── Constructor ───────────────────────────────────────────────────────────
 
-        agregarHabilidadMagica("Curación Divina",
-                "Recupera el 40 % de la vida máxima del clérigo mediante la gracia divina.");
-        agregarHabilidadMagica("Bendición Sagrada",
-                "Invoca un aura divina que aumenta temporalmente la defensa del clérigo.");
+    public Clerigo(String nombre) {
+        super(nombre, /* hp */ 100, /* def */ 12, /* poder */ 14, /* pm */ 20);
     }
 
-    // ── Reinicio de habilidades (inicio de cada fase) ────────────────────────
+    // ── Getters y setters ─────────────────────────────────────────────────────
+
+    @Override public String getTipo()       { return "CLERIGO"; }
+    @Override public String getIcono()      { return "✝️"; }
+    @Override public String getRutaImagen() { return "/recursos/imagen/clerigo.png"; }
 
     /**
-     * Además de reiniciar la habilidad especial, revierte el bonus de defensa
-     * de la Bendición Sagrada si estaba activa, para no acumular bonuses entre fases.
+     * Lista inmutable de las dos habilidades del clérigo.
+     *
+     * @return catálogo de habilidades del clérigo
+     */
+    @Override
+    public List<Habilidad> getHabilidades() {
+        return habilidades;
+    }
+
+    // ── Métodos ───────────────────────────────────────────────────────────────
+
+    /**
+     * Al inicio de cada nueva fase revierte el bonus de defensa de la Bendición
+     * Sagrada para que no se acumule entre combates.
      */
     @Override
     public void reiniciarHabilidad() {
-        super.reiniciarHabilidad();
         desactivarBendicion();
     }
 
+    /**
+     * Quita el bonus de defensa de la Bendición Sagrada si estaba activa.
+     */
     private void desactivarBendicion() {
         if (bendicionActiva) {
             bendicionActiva = false;
@@ -47,54 +69,59 @@ public class Clerigo extends Magico {
         }
     }
 
-    // ── Habilidades mágicas adicionales ──────────────────────────────────────
+    // ── Habilidades ───────────────────────────────────────────────────────────
 
-    @Override
-    public String ejecutarHabilidadAdicional(String nombre, Personaje objetivo) {
-        if ("Bendición Sagrada".equals(nombre)) {
-            if (bendicionActiva) {
-                return "⚠ La Bendición Sagrada ya está activa. (DEF: " + getDefensa() + ")";
+    private final List<Habilidad> habilidades = Collections.unmodifiableList(Arrays.asList(
+
+        new Habilidad() {
+            @Override public String      getNombre()     { return "Curación Divina"; }
+            @Override public String      getDescripcion(){ return "Invoca la gracia divina para"
+                                                                + " recuperar el 40 % de la vida"
+                                                                + " máxima del clérigo."
+                                                                + "  Coste: " + COSTE_CURACION + " PM"; }
+            @Override public TipoRecurso getTipoRecurso(){ return TipoRecurso.MANA; }
+            @Override public int         getCoste()      { return COSTE_CURACION; }
+            @Override public boolean     afectaAlEnemigo(){ return false; }
+
+            @Override
+            public boolean puedeUsarse(Heroe heroe) {
+                return ((Magico) heroe).getPm() >= COSTE_CURACION;
             }
-            bendicionActiva = true;
-            setDefensa(getDefensa() + BONUS_DEF);
-            return String.format("✝️ ¡Bendición Sagrada! %s invoca un aura divina."
-                    + " Defensa aumentada en %d. (DEF: %d)", getNombre(), BONUS_DEF, getDefensa());
+
+            @Override
+            public String ejecutar(Heroe heroe, Personaje objetivo) {
+                gastarPm(COSTE_CURACION);
+                int curacion = (int) Math.round(getPuntosGolpeMax() * 0.4);
+                curar(curacion);
+                return String.format("✨ ¡Curación Divina! %s recupera %d puntos de vida. (HP: %d/%d)",
+                        getNombre(), curacion, getPuntosGolpe(), getPuntosGolpeMax());
+            }
+        },
+
+        new Habilidad() {
+            @Override public String      getNombre()     { return "Bendición Sagrada"; }
+            @Override public String      getDescripcion(){ return "Invoca un aura divina que aumenta"
+                                                                + " temporalmente la defensa del clérigo."
+                                                                + " Usable una vez por fase."
+                                                                + "  Coste: " + COSTE_BENDICION + " PM"; }
+            @Override public TipoRecurso getTipoRecurso(){ return TipoRecurso.MANA; }
+            @Override public int         getCoste()      { return COSTE_BENDICION; }
+            @Override public boolean     afectaAlEnemigo(){ return false; }
+
+            @Override
+            public boolean puedeUsarse(Heroe heroe) {
+                return !bendicionActiva && ((Magico) heroe).getPm() >= COSTE_BENDICION;
+            }
+
+            @Override
+            public String ejecutar(Heroe heroe, Personaje objetivo) {
+                gastarPm(COSTE_BENDICION);
+                bendicionActiva = true;
+                setDefensa(getDefensa() + BONUS_DEF);
+                return String.format("✝️ ¡Bendición Sagrada! %s invoca un aura divina."
+                        + " Defensa aumentada en %d. (DEF: %d)",
+                        getNombre(), BONUS_DEF, getDefensa());
+            }
         }
-        return null;
-    }
-
-    @Override
-    public int getCostePmHabilidad(String nombre) {
-        return "Bendición Sagrada".equals(nombre) ? COSTE_BENDICION : 0;
-    }
-
-    @Override
-    public boolean isHabilidadAdicionalActiva(String nombre) {
-        return "Bendición Sagrada".equals(nombre) && bendicionActiva;
-    }
-
-    // ── Tipo, icono e imagen ──────────────────────────────────────────────────
-
-    @Override
-    public String getTipo()  { return "CLERIGO"; }
-
-    @Override
-    public String getIcono() { return "✝️"; }
-
-    @Override
-    public String getRutaImagen() { return "/recursos/imagen/clerigo.png"; }
-
-    // ── Habilidad especial ────────────────────────────────────────────────────
-
-    /**
-     * Curación Divina: el Clérigo se cura a sí mismo (el objetivo en este caso
-     * siempre es él mismo; se pasa desde el controlador).
-     */
-    @Override
-    protected String aplicarHabilidad(Personaje objetivo) {
-        int curacion = (int) Math.round(getPuntosGolpeMax() * 0.4);
-        curar(curacion);   // se cura a sí mismo
-        return String.format("✨ ¡Curación Divina! %s recupera %d puntos de vida. (HP: %d/%d)",
-                getNombre(), curacion, getPuntosGolpe(), getPuntosGolpeMax());
-    }
+    ));
 }

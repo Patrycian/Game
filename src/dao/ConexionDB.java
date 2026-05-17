@@ -40,7 +40,7 @@ public class ConexionDB {
     public static void cerrar() {
         if (instancia != null) {
             try {
-                if (!instancia.isClosed()) instancia.close();
+                if (!instancia.isClosed()) { instancia.close(); }
             } catch (SQLException e) {
                 e.printStackTrace();
             } finally {

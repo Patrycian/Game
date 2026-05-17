@@ -103,7 +103,7 @@ public class CargarPartidaController implements Initializable {
                 Jugador jugador = JugadorDAO.buscarPorId(p.getIdJugador());
                 Heroe   heroe   = PersonajeDAO.buscarPorId(p.getIdPersonaje());
                 // Descartar entradas huérfanas (datos inconsistentes en BD)
-                if (jugador == null || heroe == null) continue;
+                if (jugador == null || heroe == null) { continue; }
 
                 HBox fila = crearFilaPartida(p, jugador, heroe);
                 contenedorPartidas.getChildren().add(fila);

@@ -103,9 +103,9 @@ public class SeleccionHeroeController implements Initializable {
         agregarSonidoHover(btnAventura);
         agregarSonidoHover(btnVolver);
         // Las tarjetas no son botones, se les añade el listener de hover manualmente
-        cardMago.setOnMouseEntered(e     -> { if (sonidoHover != null) sonidoHover.play(); });
-        cardGuerrero.setOnMouseEntered(e -> { if (sonidoHover != null) sonidoHover.play(); });
-        cardClerigo.setOnMouseEntered(e  -> { if (sonidoHover != null) sonidoHover.play(); });
+        cardMago.setOnMouseEntered(e     -> { if (sonidoHover != null) { sonidoHover.play(); } });
+        cardGuerrero.setOnMouseEntered(e -> { if (sonidoHover != null) { sonidoHover.play(); } });
+        cardClerigo.setOnMouseEntered(e  -> { if (sonidoHover != null) { sonidoHover.play(); } });
     }
 
     /**
@@ -158,7 +158,8 @@ public class SeleccionHeroeController implements Initializable {
      *   <li>Crea un {@link GameSession} con jugador y héroe.</li>
      *   <li>Carga {@code Mazmorra.fxml} e inyecta la sesión en
      *       {@link MazmorraController#iniciarSesion(GameSession)}.</li>
-     *   <li>Realiza la transición visual con {@link FadeTransition}.</li>
+     *   <li>Cambia de escena directamente: la pantalla de carga ya forma parte
+     *       del flujo interno de la mazmorra.</li>
      * </ol>
      *
      * <p>Si ocurre un error de BD, muestra un diálogo de error informativo.</p>
@@ -182,15 +183,10 @@ public class SeleccionHeroeController implements Initializable {
             MazmorraController siguiente = loader.getController();
             siguiente.iniciarSesion(sesion);
 
-            // 4. Transición de salida: fade-out del panel actual antes de cambiar de escena
-            var panel = btnAventura.getScene().getRoot(); // nodo raíz real de la escena
-            FadeTransition salida = new FadeTransition(Duration.millis(600), panel);
-            salida.setToValue(0);
-            salida.setOnFinished(ev -> {
-                Stage stage = (Stage) btnAventura.getScene().getWindow();
-                stage.setScene(new Scene(root, 900, 650));
-            });
-            salida.play();
+            // 4. Cambio de escena directo (sin transición): la pantalla de carga
+            //    se muestra dentro de la propia mazmorra como parte del flujo.
+            Stage stage = (Stage) btnAventura.getScene().getWindow();
+            stage.setScene(new Scene(root, 900, 650));
         } catch (Exception e) {
             mostrarError("Error al conectar con la base de datos: " + e.getMessage());
             e.printStackTrace();
@@ -251,8 +247,11 @@ public class SeleccionHeroeController implements Initializable {
         st.play();
 
         // Mostrar información del héroe seleccionado
+        String habilidades = heroe.getHabilidades().stream()
+                .map(h -> h.getNombre())
+                .collect(java.util.stream.Collectors.joining(" · "));
         lblSeleccionado.setText("✔  Has elegido: " + heroe.getIcono() + " " + heroe.getTipo()
-                + "  —  " + heroe.getNombreHabilidad());
+                + "  —  " + habilidades);
         lblSeleccionado.setVisible(true);
         lblSeleccionado.setManaged(true);
         btnAventura.setDisable(false);
@@ -266,7 +265,7 @@ public class SeleccionHeroeController implements Initializable {
     private void inicializarSonidoHover() {
         try {
             URL url = getClass().getResource("/recursos/audio/cursor.wav");
-            if (url != null) sonidoHover = new AudioClip(url.toString());
+            if (url != null) { sonidoHover = new AudioClip(url.toString()); }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -280,7 +279,7 @@ public class SeleccionHeroeController implements Initializable {
      */
     private void agregarSonidoHover(Button btn) {
         btn.setOnMouseEntered(e -> {
-            if (sonidoHover != null) sonidoHover.play();
+            if (sonidoHover != null) { sonidoHover.play(); }
         });
     }
 
@@ -331,7 +330,7 @@ public class SeleccionHeroeController implements Initializable {
     private void animarEntrada() {
         Platform.runLater(() -> {
             var panel = btnAventura.getParent().getParent(); // VBox raíz del contenido central
-            if (panel == null) return;
+            if (panel == null) { return; }
             panel.setOpacity(0);
             FadeTransition fade = new FadeTransition(Duration.millis(700), panel);
             fade.setToValue(1); fade.setDelay(Duration.millis(150)); fade.play();

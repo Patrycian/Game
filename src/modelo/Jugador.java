@@ -6,8 +6,8 @@ import java.util.List;
 /**
  * Representa a un jugador registrado en el sistema.
  *
- * <p>Un jugador tiene un nick único, una puntuación acumulada entre partidas
- * y puede poseer varios héroes (relación 1-a-muchos con la tabla
+ * <p>Un jugador tiene un nick único, una puntuación acumulada entre partidas y
+ * puede poseer varios héroes (relación 1-a-muchos con la tabla
  * {@code personajes} de la BD).</p>
  *
  * <p>La puntuación crece +10 puntos por cada combate ganado y se persiste en BD
@@ -15,14 +15,17 @@ import java.util.List;
  */
 public class Jugador {
 
-    private int          id;           // id auto-generado en BD (0 si aún no persistido)
-    private String       nick;         // nombre único del jugador
-    private int          puntuacion;   // puntuación acumulada en todas las partidas
-    private List<Heroe>  personajes;   // héroes asociados (cargados en memoria según necesidad)
+    // ── Variables ─────────────────────────────────────────────────────────────
+
+    private int          id;          // id auto-generado en BD (0 si aún no persistido)
+    private String       nick;        // nombre único del jugador
+    private int          puntuacion;  // puntuación acumulada en todas las partidas
+    private List<Heroe>  personajes;  // héroes asociados al jugador
+
+    // ── Constructores ─────────────────────────────────────────────────────────
 
     /**
-     * Constructor para un jugador nuevo (aún sin id de BD).
-     * La puntuación empieza en 0.
+     * Constructor para un jugador nuevo (aún sin id de BD). La puntuación empieza en 0.
      *
      * @param nick nombre único del jugador
      */
@@ -47,7 +50,27 @@ public class Jugador {
         this.personajes = new ArrayList<>();
     }
 
-    // ── Lógica de puntuación ──────────────────────────────────────────────────
+    // ── Getters y setters ─────────────────────────────────────────────────────
+
+    /** @return id en BD (0 si aún no persistido) */
+    public int getId()          { return id; }
+    /** @param id id asignado por la BD tras el INSERT */
+    public void setId(int id)   { this.id = id; }
+
+    /** @return nick único del jugador */
+    public String getNick()          { return nick; }
+    /** @param nick nuevo nick */
+    public void   setNick(String nick) { this.nick = nick; }
+
+    /** @return puntuación acumulada */
+    public int  getPuntuacion()       { return puntuacion; }
+    /** @param puntuacion nueva puntuación (se usa al recargar desde BD) */
+    public void setPuntuacion(int puntuacion) { this.puntuacion = puntuacion; }
+
+    /** @return lista de héroes asociados a este jugador en memoria */
+    public List<Heroe> getPersonajes() { return personajes; }
+
+    // ── Métodos ───────────────────────────────────────────────────────────────
 
     /**
      * Añade puntos a la puntuación total del jugador.
@@ -59,41 +82,17 @@ public class Jugador {
         this.puntuacion += cantidad;
     }
 
-    // ── Gestión de personajes ─────────────────────────────────────────────────
-
     /**
      * Añade un héroe a la lista en memoria de este jugador.
      * No persiste en BD; solo actualiza el estado local.
      *
-     * @param h héroe a añadir
+     * @param heroe héroe a añadir
      */
-    public void agregarPersonaje(Heroe h) {
-        personajes.add(h);
+    public void agregarPersonaje(Heroe heroe) {
+        personajes.add(heroe);
     }
 
-    /**
-     * @return lista de héroes asociados a este jugador en memoria
-     */
-    public List<Heroe> getPersonajes() {
-        return personajes;
-    }
-
-    // ── Getters y setters ─────────────────────────────────────────────────────
-
-    /** @return id en BD (0 si aún no persistido) */
-    public int    getId()              { return id; }
-    /** @param id id asignado por la BD tras el INSERT */
-    public void   setId(int id)        { this.id = id; }
-
-    /** @return nick único del jugador */
-    public String getNick()            { return nick; }
-    /** @param nick nuevo nick */
-    public void   setNick(String nick) { this.nick = nick; }
-
-    /** @return puntuación acumulada */
-    public int    getPuntuacion()              { return puntuacion; }
-    /** @param p nueva puntuación (se usa al recargar desde BD) */
-    public void   setPuntuacion(int p)         { this.puntuacion = p; }
+    // ── ToString ──────────────────────────────────────────────────────────────
 
     @Override
     public String toString() {

@@ -47,4 +47,13 @@ public class Goblin extends Enemigo {
     // El Goblin usa el ataque físico básico heredado de Enemigo:
     //   daño = max(1, poder − defensa_del_héroe)
     // No sobreescribe realizarAtaque().
+
+    /**
+     * El Goblin tiene un 40 % de probabilidad de soltar una Poción de Curación.
+     * Los goblins rapiñan suministros de los aventureros caídos, de ahí sus botines.
+     */
+    @Override
+    public TipoDrop generarDrop() {
+        return RNG.nextInt(100) < 40 ? TipoDrop.POCION_VIDA : null;
+    }
 }

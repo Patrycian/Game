@@ -58,7 +58,7 @@ public class PartidaDAO {
             ps.setInt(8, partida.getHpEnemigo());
             ps.setInt(9, partida.getPmEnemigo());
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) partida.setId(rs.getInt("id"));
+                if (rs.next()) { partida.setId(rs.getInt("id")); }
             }
         }
     }
@@ -108,7 +108,7 @@ public class PartidaDAO {
         try (PreparedStatement ps = ConexionDB.getConexion().prepareStatement(sql)) {
             ps.setInt(1, idJugador);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapear(rs);
+                if (rs.next()) { return mapear(rs); }
             }
         }
         return null;

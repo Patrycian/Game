@@ -108,7 +108,7 @@ public class NombreController implements Initializable {
             Scene scene = rootPane.getScene();
             if (scene != null) {
                 scene.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
-                    if (!tecladoVisible) return;
+                    if (!tecladoVisible) { return; }
 
                     // Convertir coordenadas de escena al espacio local del rootPane
                     var puntoLocal = rootPane.sceneToLocal(e.getSceneX(), e.getSceneY());
@@ -237,7 +237,7 @@ public class NombreController implements Initializable {
      * <p>No hace nada si el teclado ya estaba visible.</p>
      */
     private void mostrarTeclado() {
-        if (tecladoVisible) return;
+        if (tecladoVisible) { return; }
         tecladoVisible = true;
         panelTeclado.setMouseTransparent(false);
 
@@ -263,7 +263,7 @@ public class NombreController implements Initializable {
      * <p>No hace nada si el teclado ya estaba oculto.</p>
      */
     private void ocultarTeclado() {
-        if (!tecladoVisible) return;
+        if (!tecladoVisible) { return; }
         tecladoVisible = false;
         panelTeclado.setMouseTransparent(true);
 
@@ -431,7 +431,7 @@ public class NombreController implements Initializable {
     private void animarEntrada() {
         Platform.runLater(() -> {
             var panel = txtNombre.getParent(); // VBox o contenedor del campo y los botones
-            if (panel == null) return;
+            if (panel == null) { return; }
             panel.setOpacity(0);
             panel.setTranslateY(20);
             FadeTransition fade = new FadeTransition(Duration.millis(800), panel);

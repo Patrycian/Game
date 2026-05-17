@@ -11,13 +11,17 @@ import java.util.Random;
 /**
  * Motor de combate por turnos (1 héroe vs 1 enemigo).
  *
- * Flujo de un turno:
- *  1. El héroe ataca al enemigo  (o usa su habilidad especial).
- *  2. Si el enemigo sigue vivo, el enemigo ataca al héroe.
- *  3. Se comprueba si alguno ha llegado a 0 HP → fin del combate.
+ * <p>Flujo de un turno:</p>
+ * <ol>
+ *   <li>El héroe ataca al enemigo o ejecuta una {@link Habilidad} directamente.</li>
+ *   <li>Si el enemigo sigue vivo, el enemigo ataca al héroe.</li>
+ *   <li>Se comprueba si alguno ha llegado a 0 HP → fin del combate.</li>
+ * </ol>
  *
- * El controlador llama a {@link #ejecutarTurnoHeroe(boolean)} para el turno
- * del jugador y recibe la lista de mensajes ocurridos en ese turno.
+ * <p>El controlador llama a {@link #iniciarTurno()}, luego a
+ * {@link #ejecutarAtaqueBasico()} (o ejecuta una {@link Habilidad} directamente
+ * y llama a {@link #verificarResultado()}), y por último a
+ * {@link #ejecutarReaccionEnemigo()} con la pausa visual entre medias.</p>
  */
 public class MotorCombate {
 
@@ -29,9 +33,9 @@ public class MotorCombate {
     private ResultadoCombate resultado;
 
     public MotorCombate(Heroe heroe, Enemigo enemigo) {
-        this.heroe    = heroe;
-        this.enemigo  = enemigo;
-        this.turno    = 0;
+        this.heroe     = heroe;
+        this.enemigo   = enemigo;
+        this.turno     = 0;
         this.resultado = ResultadoCombate.EN_CURSO;
     }
 
@@ -41,47 +45,59 @@ public class MotorCombate {
      * Incrementa el contador de turnos y devuelve la línea separadora que debe
      * mostrarse al inicio de cada turno en el log de combate.
      *
-     * <p>Se llama desde el controlador antes de mostrar cualquier acción del turno,
-     * de modo que el separador aparece justo antes del bloque de mensajes.</p>
-     *
-     * @return cadena con el separador visual del turno (p. ej. {@code "\n── TURNO 1 ─────────────"})
+     * @return cadena con el separador visual del turno (p. ej. {@code "\n── TURNO 1 ────"})
      */
     public String iniciarTurno() {
         turno++;
-        String n = String.valueOf(turno);
-        return "\n── TURNO " + n + " " + "─".repeat(Math.max(0, 28 - n.length()));
+        String turnoStr = String.valueOf(turno);
+        return "\n── TURNO " + turnoStr + " " + "─".repeat(Math.max(0, 28 - turnoStr.length()));
     }
 
     /**
-     * Ejecuta únicamente la <b>acción del héroe</b> dentro del turno actual.
+     * Ejecuta el ataque básico del héroe contra el enemigo y devuelve los mensajes del resultado.
      *
-     * <p>A diferencia de {@link #ejecutarTurnoHeroe}, este método no realiza el
-     * contraataque enemigo. Está pensado para que el controlador pueda insertar
-     * una pausa visual entre la acción del héroe y la reacción del enemigo.</p>
+     * <p>Si el enemigo cae, actualiza el resultado a VICTORIA y añade los mensajes de victoria.</p>
      *
-     * <p>Precondición: el controlador debe haber llamado antes a {@link #iniciarTurno()}.</p>
+     * <p>Para habilidades especiales, el controlador llama a {@link Habilidad#ejecutar}
+     * directamente y luego invoca {@link #verificarResultado()} para sincronizar el estado.</p>
      *
-     * @param usarHabilidad {@code true} para habilidad especial; {@code false} para ataque básico
-     * @return mensajes de la acción del héroe; si el enemigo cae, incluye los mensajes de victoria
+     * @return mensajes de la acción del héroe
      */
-    public List<String> ejecutarAccionHeroe(boolean usarHabilidad) {
+    public List<String> ejecutarAtaqueBasico() {
         List<String> log = new ArrayList<>();
-        if (resultado != ResultadoCombate.EN_CURSO) return log;
+        if (resultado != ResultadoCombate.EN_CURSO) { return log; }
 
-        if (usarHabilidad) {
-            Personaje objetivo = (heroe instanceof Clerigo) ? heroe : enemigo;
-            log.add("▸ " + heroe.usarHabilidad(objetivo));
-        } else {
-            int danio = enemigo.recibirAtaque(heroe);
-            log.add(String.format("▸ %s %s  →  -%d HP  [%s: %d/%d HP]",
-                    heroe.getIcono(), heroe.getNombre(), danio,
-                    enemigo.getNombre(), enemigo.getPuntosGolpe(), enemigo.getPuntosGolpeMax()));
-        }
+        int danio = enemigo.recibirAtaque(heroe);
+        log.add(String.format("▸ %s %s  →  -%d HP  [%s: %d/%d HP]",
+                heroe.getIcono(), heroe.getNombre(), danio,
+                enemigo.getNombre(), enemigo.getPuntosGolpe(), enemigo.getPuntosGolpeMax()));
+
+        log.addAll(verificarResultado());
+        return log;
+    }
+
+    /**
+     * Comprueba si alguno de los combatientes ha llegado a 0 HP y actualiza
+     * el resultado del combate en consecuencia.
+     *
+     * <p>Se llama internamente tras {@link #ejecutarAtaqueBasico()} y externamente
+     * por el controlador tras ejecutar una {@link Habilidad} directamente sobre
+     * el modelo.</p>
+     *
+     * @return lista de mensajes de fin de combate (vacía si el combate sigue en curso)
+     */
+    public List<String> verificarResultado() {
+        List<String> log = new ArrayList<>();
+        if (resultado != ResultadoCombate.EN_CURSO) { return log; }
 
         if (!enemigo.estaVivo()) {
             resultado = ResultadoCombate.VICTORIA;
             log.add("  💀 ¡" + enemigo.getNombre() + " derrotado!");
             log.add("  🏆 ¡VICTORIA!");
+        } else if (!heroe.estaVivo()) {
+            resultado = ResultadoCombate.DERROTA;
+            log.add("  💀 " + heroe.getNombre() + " ha caído en combate...");
+            log.add("  ☠  Derrota. Fin de la aventura.");
         }
         return log;
     }
@@ -96,57 +112,36 @@ public class MotorCombate {
      */
     public List<String> ejecutarReaccionEnemigo() {
         List<String> log = new ArrayList<>();
-        if (resultado != ResultadoCombate.EN_CURSO || !enemigo.estaVivo()) return log;
+        if (resultado != ResultadoCombate.EN_CURSO || !enemigo.estaVivo()) { return log; }
 
         String ataque         = enemigo.realizarAtaque(heroe);
         String mensajeDefensa = heroe.consumirMensajeDefensa();
         log.add("◀ " + (mensajeDefensa != null ? mensajeDefensa : ataque));
 
-        if (!heroe.estaVivo()) {
-            resultado = ResultadoCombate.DERROTA;
-            log.add("  💀 " + heroe.getNombre() + " ha caído en combate...");
-            log.add("  ☠  Derrota. Fin de la aventura.");
-        }
+        log.addAll(verificarResultado());
         return log;
     }
 
     /**
-     * Ejecuta un turno completo (héroe + enemigo) de forma atómica.
-     * Mantiene compatibilidad con código legado; el controlador principal
-     * usa {@link #iniciarTurno()}, {@link #ejecutarAccionHeroe} y
-     * {@link #ejecutarReaccionEnemigo()} para poder insertar pausas visuales.
+     * Ejecuta un turno completo (héroe ataca + enemigo contraataca) de forma atómica.
      *
-     * @param usarHabilidad true si el jugador quiere usar la habilidad especial
+     * <p>Mantenido por compatibilidad con código de pruebas; el controlador principal
+     * usa {@link #iniciarTurno()}, {@link #ejecutarAtaqueBasico()} y
+     * {@link #ejecutarReaccionEnemigo()} por separado para poder insertar pausas visuales.</p>
+     *
      * @return lista completa de mensajes del turno
      */
-    public List<String> ejecutarTurnoHeroe(boolean usarHabilidad) {
+    public List<String> ejecutarTurnoHeroe() {
         List<String> log = new ArrayList<>();
         if (resultado != ResultadoCombate.EN_CURSO) {
             log.add("El combate ya ha terminado.");
             return log;
         }
         log.add(iniciarTurno());
-        log.addAll(ejecutarAccionHeroe(usarHabilidad));
-        if (resultado == ResultadoCombate.EN_CURSO)
+        log.addAll(ejecutarAtaqueBasico());
+        if (resultado == ResultadoCombate.EN_CURSO) {
             log.addAll(ejecutarReaccionEnemigo());
-        return log;
-    }
-
-    /**
-     * Inicia un nuevo turno y ejecuta únicamente el contraataque del enemigo.
-     * Se usa cuando el héroe realiza una acción no-ataque (buff, poción) que
-     * ocupa su turno pero no es gestionada por {@link #ejecutarAccionHeroe}.
-     *
-     * @return lista de mensajes del contraataque (vacía si el combate ya terminó
-     *         o el enemigo está derrotado)
-     * @deprecated Usar {@link #iniciarTurno()} + {@link #ejecutarReaccionEnemigo()} directamente.
-     */
-    @Deprecated
-    public List<String> ejecutarContraataqueEnemigo() {
-        List<String> log = new ArrayList<>();
-        if (resultado != ResultadoCombate.EN_CURSO || !enemigo.estaVivo()) return log;
-        log.add(iniciarTurno());
-        log.addAll(ejecutarReaccionEnemigo());
+        }
         return log;
     }
 
@@ -157,24 +152,38 @@ public class MotorCombate {
      * si están disponibles. Se usa al reanudar una partida guardada para restaurar
      * el mismo tipo de enemigo que estaba activo cuando el jugador huyó.
      *
-     * <p>Si el tipo no coincide con ningún enemigo conocido, se genera un enemigo
-     * aleatorio de fase 1 como fallback seguro.</p>
+     * <p>Si el tipo no coincide con ningún enemigo conocido, se genera un Goblin
+     * como fallback seguro.</p>
      *
      * @param tipo nombre del tipo en mayúsculas ("GOBLIN", "OGRO", "SAGA", "DRAGON")
-     * @return enemigo del tipo solicitado con HP al máximo (el HP guardado se aplica
-     *         externamente tras la llamada con {@code enemigo.setPuntosGolpe(hp)})
+     * @return enemigo del tipo solicitado con HP al máximo
      */
     public static Enemigo generarEnemigoDeTipo(String tipo) {
-        Map<String, EnemigoDatos> cat = EnemigoDAO.getCatalogo();
+        Map<String, EnemigoDatos> catalogo = EnemigoDAO.getCatalogo();
         switch (tipo.toUpperCase()) {
-            case "DRAGON": { EnemigoDatos d = cat.get("DRAGON"); return d != null ? new Dragon(d)  : new Dragon();  }
-            case "OGRO":   { EnemigoDatos d = cat.get("OGRO");   return d != null ? new Ogro(d)    : new Ogro();    }
-            case "GOBLIN": { EnemigoDatos d = cat.get("GOBLIN"); return d != null ? new Goblin(d)  : new Goblin();  }
-            case "SAGA":   { EnemigoDatos d = cat.get("SAGA");   return d != null ? new Saga(d)    : new Saga();    }
-            default: {     // tipo desconocido (BD corrupta) → Goblin como fallback más seguro
-                EnemigoDatos d = cat.get("GOBLIN");
-                return d != null ? new Goblin(d) : new Goblin();
-            }
+            case "DRAGON": return crearEnemigoDesdeCatalogo("DRAGON", catalogo);
+            case "OGRO":   return crearEnemigoDesdeCatalogo("OGRO",   catalogo);
+            case "GOBLIN": return crearEnemigoDesdeCatalogo("GOBLIN", catalogo);
+            case "SAGA":   return crearEnemigoDesdeCatalogo("SAGA",   catalogo);
+            default:       return crearEnemigoDesdeCatalogo("GOBLIN", catalogo); // fallback seguro
+        }
+    }
+
+    /**
+     * Construye un enemigo del tipo indicado usando los datos del catálogo de BD
+     * cuando están disponibles, o los valores por defecto hardcodeados si no lo están.
+     *
+     * @param tipo     clave del enemigo en el catálogo ("GOBLIN", "OGRO", "SAGA", "DRAGON")
+     * @param catalogo mapa de datos cargado desde BD por {@link EnemigoDAO}
+     * @return enemigo listo para combatir
+     */
+    private static Enemigo crearEnemigoDesdeCatalogo(String tipo, Map<String, EnemigoDatos> catalogo) {
+        EnemigoDatos datos = catalogo.get(tipo);
+        switch (tipo) {
+            case "DRAGON": return datos != null ? new Dragon(datos) : new Dragon();
+            case "OGRO":   return datos != null ? new Ogro(datos)   : new Ogro();
+            case "SAGA":   return datos != null ? new Saga(datos)   : new Saga();
+            default:       return datos != null ? new Goblin(datos) : new Goblin();
         }
     }
 
@@ -183,26 +192,24 @@ public class MotorCombate {
      * Intenta cargar los stats desde la BD mediante {@link EnemigoDAO}.
      * Si la BD no está disponible, usa los constructores por defecto (valores hardcodeados).
      *
-     * Fases 1-3 → enemigo aleatorio entre Ogro, Goblin, Saga.
-     * Fase 4    → Dragón (jefe final, siempre).
+     * <p>Fases 1–3: enemigo aleatorio entre Ogro, Goblin, Saga.
+     * Fase 4: Dragón (jefe final, siempre).</p>
+     *
+     * @param fase número de fase (1–4)
+     * @return enemigo generado para esa fase
      */
     public static Enemigo generarEnemigo(int fase) {
-        Map<String, EnemigoDatos> cat = EnemigoDAO.getCatalogo();
+        Map<String, EnemigoDatos> catalogo = EnemigoDAO.getCatalogo();
 
         if (fase == 4) {
-            EnemigoDatos d = cat.get("DRAGON");
-            return (d != null) ? new Dragon(d) : new Dragon();
+            return crearEnemigoDesdeCatalogo("DRAGON", catalogo);
         }
 
-        // Pool de fases 1-3: construir con datos de BD si están disponibles
-        EnemigoDatos dOgro   = cat.get("OGRO");
-        EnemigoDatos dGoblin = cat.get("GOBLIN");
-        EnemigoDatos dSaga   = cat.get("SAGA");
-
+        // Fases 1-3: elegir al azar entre los tres enemigos normales
         Enemigo[] pool = {
-            (dOgro   != null) ? new Ogro(dOgro)     : new Ogro(),
-            (dGoblin != null) ? new Goblin(dGoblin)  : new Goblin(),
-            (dSaga   != null) ? new Saga(dSaga)      : new Saga()
+            crearEnemigoDesdeCatalogo("OGRO",   catalogo),
+            crearEnemigoDesdeCatalogo("GOBLIN", catalogo),
+            crearEnemigoDesdeCatalogo("SAGA",   catalogo)
         };
         return pool[new Random().nextInt(pool.length)];
     }

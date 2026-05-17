@@ -19,7 +19,7 @@ public class EnemigoDatos {
     private final int     puntosGolpe;  // HP máximos del enemigo
     private final int     defensa;      // Defensa base
     private final int     poder;        // Poder de ataque base
-    private final String  icono;        // Emoji identificativo (puede usarse como sprite)
+    private final String  icono;        // Emoji identificativo (usamos como sprite?)
     private final boolean esJefe;       // true si es el jefe final (Dragón)
 
     /**

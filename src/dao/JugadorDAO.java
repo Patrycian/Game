@@ -39,14 +39,14 @@ public class JugadorDAO {
     public static Jugador insertar(Jugador jugador) throws SQLException {
         // Comprobar si el nick ya existe para evitar duplicados
         Jugador existente = buscarPorNick(jugador.getNick());
-        if (existente != null) return existente;
+        if (existente != null) { return existente; }
 
         String sql = "INSERT INTO jugadores (nick, puntuacion) VALUES (?, ?) RETURNING id";
         try (PreparedStatement ps = ConexionDB.getConexion().prepareStatement(sql)) {
             ps.setString(1, jugador.getNick());
             ps.setInt(2, jugador.getPuntuacion());
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) jugador.setId(rs.getInt("id"));
+                if (rs.next()) { jugador.setId(rs.getInt("id")); }
             }
         }
         return jugador;

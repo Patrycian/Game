@@ -19,12 +19,16 @@ package modelo;
  */
 public abstract class Personaje {
 
-    private int    id;              // id en BD (0 si aún no persistido)
-    private String nombre;          // nombre visible en pantalla
-    private int    puntosGolpeMax;  // vida máxima (no varía en combate)
-    private int    puntosGolpe;     // vida actual (decrece al recibir daño)
-    private int    defensa;         // reduce el daño de ataques físicos entrantes
-    private int    poder;           // determina el daño de los ataques de este personaje
+    // ── Variables ─────────────────────────────────────────────────────────────
+
+    private int    id;             // id en BD (0 si aún no persistido)
+    private String nombre;         // nombre visible en pantalla
+    private int    puntosGolpeMax; // vida máxima (no varía en combate)
+    private int    puntosGolpe;    // vida actual (decrece al recibir daño)
+    private int    defensa;        // reduce el daño de ataques físicos entrantes
+    private int    poder;          // determina el daño de los ataques de este personaje
+
+    // ── Constructor ───────────────────────────────────────────────────────────
 
     /**
      * Construye un personaje con sus atributos base.
@@ -36,15 +40,70 @@ public abstract class Personaje {
      * @param poder       valor de ataque base
      */
     protected Personaje(String nombre, int puntosGolpe, int defensa, int poder) {
-        this.nombre          = nombre;
-        this.puntosGolpeMax  = puntosGolpe;
-        this.puntosGolpe     = puntosGolpe;
-        this.defensa         = defensa;
-        this.poder           = poder;
-        this.id              = 0;
+        this.nombre         = nombre;
+        this.puntosGolpeMax = puntosGolpe;
+        this.puntosGolpe    = puntosGolpe;
+        this.defensa        = defensa;
+        this.poder          = poder;
+        this.id             = 0;
     }
 
-    // ── Lógica de combate ─────────────────────────────────────────────────────
+    // ── Getters y setters ─────────────────────────────────────────────────────
+
+    /** @return id en BD, o 0 si aún no ha sido persistido */
+    public int    getId()               { return id; }
+    /** @param id id asignado por la BD tras el INSERT */
+    public void   setId(int id)         { this.id = id; }
+
+    /** @return nombre del personaje */
+    public String getNombre()           { return nombre; }
+    /** @param nombre nuevo nombre */
+    public void   setNombre(String nombre) { this.nombre = nombre; }
+
+    /** @return puntos de golpe actuales (vida restante) */
+    public int    getPuntosGolpe()      { return puntosGolpe; }
+    /**
+     * Fija los puntos de golpe actuales, garantizando que no sean negativos.
+     *
+     * @param v nuevo valor de HP (se clampea a 0 como mínimo)
+     */
+    public void   setPuntosGolpe(int v) { this.puntosGolpe = Math.max(0, v); }
+
+    /** @return puntos de golpe máximos (vida total) */
+    public int    getPuntosGolpeMax()   { return puntosGolpeMax; }
+
+    /** @return valor de defensa actual */
+    public int    getDefensa()          { return defensa; }
+    /**
+     * Actualiza la defensa del personaje.
+     * Lo usan habilidades como Postura de Hierro (Guerrero) o Bendición Sagrada (Clérigo)
+     * para aplicar o revertir bonificaciones temporales.
+     *
+     * @param d nuevo valor de defensa
+     */
+    public void   setDefensa(int d)     { this.defensa = d; }
+
+    /** @return valor de poder (ataque) actual */
+    public int    getPoder()            { return poder; }
+    /** @param p nuevo valor de poder */
+    public void   setPoder(int p)       { this.poder = p; }
+
+    /**
+     * Devuelve una descripción corta del tipo de personaje (p. ej. "MAGO", "DRAGON").
+     * Se muestra en la UI junto al nombre.
+     *
+     * @return cadena con el tipo en mayúsculas
+     */
+    public abstract String getTipo();
+
+    /**
+     * Devuelve el icono emoji que representa visualmente al personaje en el log de combate.
+     *
+     * @return emoji representativo (p. ej. "🧙", "🐉")
+     */
+    public abstract String getIcono();
+
+    // ── Métodos ───────────────────────────────────────────────────────────────
 
     /**
      * Aplica el daño de un ataque básico recibido de otro personaje.
@@ -110,70 +169,17 @@ public abstract class Personaje {
     }
 
     /**
-     * Devuelve una descripción corta del tipo de personaje (p. ej. "MAGO", "DRAGON").
-     * Se muestra en la UI junto al nombre.
-     *
-     * @return cadena con el tipo en mayúsculas
-     */
-    public abstract String getTipo();
-
-    /**
-     * Devuelve el icono emoji que representa visualmente al personaje en el log de combate.
-     *
-     * @return emoji representativo (p. ej. "🧙", "🐉")
-     */
-    public abstract String getIcono();
-
-    // ── Getters y setters ─────────────────────────────────────────────────────
-
-    /** @return id en BD, o 0 si aún no ha sido persistido */
-    public int    getId()               { return id; }
-    /** @param id id asignado por la BD tras el INSERT */
-    public void   setId(int id)         { this.id = id; }
-
-    /** @return nombre del personaje */
-    public String getNombre()           { return nombre; }
-    /** @param n nuevo nombre */
-    public void   setNombre(String n)   { this.nombre = n; }
-
-    /** @return puntos de golpe actuales (vida restante) */
-    public int    getPuntosGolpe()      { return puntosGolpe; }
-    /**
-     * Fija los puntos de golpe actuales, garantizando que no sean negativos.
-     *
-     * @param v nuevo valor de HP (se clampea a 0 como mínimo)
-     */
-    public void   setPuntosGolpe(int v) { this.puntosGolpe = Math.max(0, v); }
-
-    /** @return puntos de golpe máximos (vida total) */
-    public int    getPuntosGolpeMax()   { return puntosGolpeMax; }
-
-    /** @return valor de defensa actual */
-    public int    getDefensa()          { return defensa; }
-    /**
-     * Actualiza la defensa del personaje.
-     * Lo usan habilidades como Postura de Hierro (Guerrero) o Bendición Sagrada (Clérigo)
-     * para aplicar o revertir bonificaciones temporales.
-     *
-     * @param d nuevo valor de defensa
-     */
-    public void   setDefensa(int d)     { this.defensa = d; }
-
-    /** @return valor de poder (ataque) actual */
-    public int    getPoder()            { return poder; }
-    /** @param p nuevo valor de poder */
-    public void   setPoder(int p)       { this.poder = p; }
-
-    /**
      * Calcula el porcentaje de vida restante como valor entre 0.0 y 1.0.
      * Se usa para actualizar las barras de progreso en la UI.
      *
      * @return fracción {@code puntosGolpe / puntosGolpeMax}, o 0 si el máximo es 0
      */
     public double getPorcentajeVida() {
-        if (puntosGolpeMax == 0) return 0;
+        if (puntosGolpeMax == 0) { return 0; }
         return (double) puntosGolpe / puntosGolpeMax;
     }
+
+    // ── ToString ──────────────────────────────────────────────────────────────
 
     @Override
     public String toString() {
