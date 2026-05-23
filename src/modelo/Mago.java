@@ -10,7 +10,7 @@ import java.util.List;
  * <h3>Habilidades disponibles en combate:</h3>
  * <ul>
  * <li><b>Bola de Fuego</b>: inflige poder × 2 de daño mágico directo, ignorando
- * la defensa del enemigo. Sin coste de PM.</li>
+ * la defensa del enemigo. Coste: {@value #COSTE_BOLA_FUEGO} PM.</li>
  * <li><b>Escudo Arcano</b>: barrera mágica que absorbe por completo el
  * siguiente ataque enemigo. Coste: {@value #COSTE_ESCUDO} PM.</li>
  * </ul>
@@ -19,7 +19,8 @@ public class Mago extends Magico {
 
 	// ── Variables ─────────────────────────────────────────────────────────────
 
-	private static final int COSTE_ESCUDO = 10;
+	private static final int COSTE_BOLA_FUEGO = 15;
+	private static final int COSTE_ESCUDO     = 10;
 
 	private boolean escudoActivo = false;
 
@@ -96,26 +97,33 @@ public class Mago extends Magico {
 				@Override
 				public String getDescripcion() {
 					return "Lanza una bola de fuego que inflige" + " el doble de tu poder (poder × 2)"
-							+ " de daño mágico directo," + " ignorando la defensa del enemigo.";
+							+ " de daño mágico directo," + " ignorando la defensa del enemigo."
+							+ "  Coste: " + COSTE_BOLA_FUEGO + " PM";
 				}
 
 				@Override
 				public TipoRecurso getTipoRecurso() {
-					return TipoRecurso.NINGUNO;
+					return TipoRecurso.MANA;
 				}
 
 				@Override
 				public int getCoste() {
-					return 0;
+					return COSTE_BOLA_FUEGO;
+				}
+
+				@Override
+				public String getRutaAudio() {
+					return "/recursos/audio/bolaFuego.mp3";
 				}
 
 				@Override
 				public boolean puedeUsarse(Heroe heroe) {
-					return true;
+					return ((Magico) heroe).getPm() >= COSTE_BOLA_FUEGO;
 				}
 
 				@Override
 				public String ejecutar(Heroe heroe, Personaje objetivo) {
+					gastarPm(COSTE_BOLA_FUEGO);
 					int danio = getPoder() * 2;
 					objetivo.setPuntosGolpe(Math.max(0, objetivo.getPuntosGolpe() - danio));
 					return String.format("🔥 ¡Bola de Fuego! %s recibe %d puntos de daño mágico directo.",
@@ -148,6 +156,11 @@ public class Mago extends Magico {
 				@Override
 				public boolean afectaAlEnemigo() {
 					return false;
+				}
+
+				@Override
+				public String getRutaAudio() {
+					return "/recursos/audio/defensaMagica.mp3";
 				}
 
 				@Override

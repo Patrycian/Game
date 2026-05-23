@@ -82,6 +82,7 @@ public class Clerigo extends Magico {
             @Override public TipoRecurso getTipoRecurso(){ return TipoRecurso.MANA; }
             @Override public int         getCoste()      { return COSTE_CURACION; }
             @Override public boolean     afectaAlEnemigo(){ return false; }
+            @Override public String      getRutaAudio()  { return "/recursos/audio/defensaMagica.mp3"; }
 
             @Override
             public boolean puedeUsarse(Heroe heroe) {
@@ -107,6 +108,7 @@ public class Clerigo extends Magico {
             @Override public TipoRecurso getTipoRecurso(){ return TipoRecurso.MANA; }
             @Override public int         getCoste()      { return COSTE_BENDICION; }
             @Override public boolean     afectaAlEnemigo(){ return false; }
+            @Override public String      getRutaAudio()  { return "/recursos/audio/defensaMagica.mp3"; }
 
             @Override
             public boolean puedeUsarse(Heroe heroe) {

@@ -35,7 +35,9 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.ResourceBundle;
 
@@ -43,8 +45,7 @@ import java.util.ResourceBundle;
  * Controlador principal de la pantalla de combate en la mazmorra (estilo Pokémon).
  *
  * <p>Gestiona toda la lógica de la interfaz de combate: turnos, barras de vida y
- * de magia, submenús contextuales, animaciones, persistencia entre fases y
- * navegación al terminar la partida.</p>
+ * de magia, submenús contextuales, animaciones y navegación al terminar la partida.</p>
  *
  * <h3>Flujo general de una partida:</h3>
  * <ol>
@@ -370,6 +371,12 @@ public class MazmorraController implements Initializable {
     /** Clip de sonido corto que suena al pasar el cursor sobre cualquier botón de combate. */
     private AudioClip sonidoHover;
 
+    /** Clip de sonido que suena al ejecutar un ataque normal (héroe o enemigo). */
+    private AudioClip sonidoAtaque;
+
+    /** Caché de clips de audio de habilidades, indexados por ruta de recurso. */
+    private final Map<String, AudioClip> cacheSonidosHabilidad = new HashMap<>();
+
     // ── Inventario del combate ────────────────────────────────────────────────
     /**
      * Pociones de curación disponibles para toda la partida.
@@ -423,6 +430,7 @@ public class MazmorraController implements Initializable {
         pocionesRestantes        = 3;
         pocionesMagicasRestantes = 2;
         inicializarSonidoHover();
+        inicializarSonidoAtaque();
         configurarSonidoBotones();
         // Mostrar pantalla de carga antes de la fase actual (1 para partida nueva,
         // o la fase guardada para partida cargada). Al terminar, llamará a
@@ -802,8 +810,6 @@ public class MazmorraController implements Initializable {
     private void handleContinuar() {
         if (sesion.hayMasFases()) {
             sesion.avanzarFase();
-            // Checkpoint: guardar nueva fase y estadísticas actuales del héroe
-            guardarAlAvanzarFase();
             // Mostrar pantalla de carga; al terminar, llamará a prepararCombate()
             detenerMusica();
             mostrarPantallaCarga();
@@ -922,6 +928,7 @@ public class MazmorraController implements Initializable {
      */
     private void ejecutarTurnoAtaqueBasico() {
         agregarLog(motor.iniciarTurno());
+        if (sonidoAtaque != null) { sonidoAtaque.play(); }
         motor.ejecutarAtaqueBasico().forEach(this::agregarLog);
         actualizarBarraEnemigo();
         if (motor.getEnemigo().tienePmMax()) { actualizarBarraPmEnemigo(); }
@@ -964,6 +971,7 @@ public class MazmorraController implements Initializable {
         // Fase 1: ejecutar la habilidad
         Personaje objetivo = habilidad.afectaAlEnemigo() ? motor.getEnemigo() : heroe;
         agregarLog(motor.iniciarTurno());
+        reproducirSonidoHabilidad(habilidad);
         agregarLog("▸ " + habilidad.ejecutar(heroe, objetivo));
         actualizarTodasLasBarras();
 
@@ -1061,6 +1069,7 @@ public class MazmorraController implements Initializable {
      */
     private void ejecutarFase2Enemiga(boolean regenerarEnergia) {
         pausarYEjecutar(Duration.millis(750), () -> {
+            if (sonidoAtaque != null) { sonidoAtaque.play(); }
             motor.ejecutarReaccionEnemigo().forEach(this::agregarLog);
             agregarLog("");
             if (regenerarEnergia) { regenerarEnergiaGuerrero(); }
@@ -1123,8 +1132,6 @@ public class MazmorraController implements Initializable {
         boolean victoria = resultado == ResultadoCombate.VICTORIA;
 
         // Asegurar que la partida existe en BD para poder registrar el combate.
-        // Este INSERT no es un checkpoint de progreso; el guardado real ocurre
-        // en handleContinuar() → guardarAlAvanzarFase().
         asegurarPartidaCreada();
         if (sesion.getPartida() != null) {
             try {
@@ -1483,9 +1490,7 @@ public class MazmorraController implements Initializable {
      * del combate (fase, HP/PM del héroe, tipo y HP/PM del enemigo activo).
      *
      * <p>Solo se llama desde {@link #procesarFinCombate} para que
-     * {@link dao.CombateDAO} pueda usar el id de partida como clave foránea.
-     * El guardado de progreso real (checkpoint) se realiza en
-     * {@link #guardarAlAvanzarFase()}.</p>
+     * {@link dao.CombateDAO} pueda usar el id de partida como clave foránea.</p>
      */
     private void asegurarPartidaCreada() {
         if (sesion.getPartida() != null) { return; }
@@ -1510,60 +1515,18 @@ public class MazmorraController implements Initializable {
     }
 
     /**
-     * Checkpoint de progreso: guarda la nueva fase y las estadísticas actuales
-     * del héroe justo antes de empezar el combate de esa fase.
-     *
-     * <p>Los campos de enemigo se limpian (null / 0) porque en la nueva fase
-     * el enemigo aún no ha sido generado; al cargar la partida se generará
-     * uno aleatorio fresco.</p>
-     *
-     * <p>Se llama únicamente desde {@link #handleContinuar()} tras
-     * {@link GameSession#avanzarFase()}, nunca al huir.</p>
-     */
-    private void guardarAlAvanzarFase() {
-        try {
-            Heroe heroe = sesion.getHeroe();
-            if (sesion.getPartida() == null) {
-                // No hubo combate anterior registrado: crear la fila ahora
-                Partida p = new Partida(
-                    sesion.getJugador().getId(),
-                    heroe.getId(),
-                    sesion.getFaseActual(),
-                    heroe.getPuntosGolpe()
-                );
-                p.setPmActual(pmActualHeroe());
-                // Enemigo aún no generado → campos vacíos (generarán uno fresco al cargar)
-                PartidaDAO.insertar(p);
-                sesion.setPartida(p);
-            } else {
-                Partida p = sesion.getPartida();
-                p.setFaseActual(sesion.getFaseActual());
-                p.setHpActual(heroe.getPuntosGolpe());
-                p.setPmActual(pmActualHeroe());
-                // Limpiar datos del enemigo anterior: la nueva fase empieza con enemigo fresco
-                p.setTipoEnemigo(null);
-                p.setHpEnemigo(0);
-                p.setPmEnemigo(0);
-                PartidaDAO.actualizar(p);
-            }
-            PersonajeDAO.actualizarHp(heroe.getId(), heroe.getPuntosGolpe());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Guarda la partida en BD tras una huida exitosa.
      *
      * <p>Se llama desde {@link #mostrarPantallaDescanso()} una vez aplicada la
      * recuperación de HP (y PM), de modo que la partida guardada ya refleja los
      * valores restaurados. El estado permanece {@code EN_CURSO} para que el jugador
-     * pueda reanudarla desde el menú de carga. El enemigo se limpia (el héroe huyó)
-     * para que al reanudar se genere uno nuevo.</p>
+     * pueda reanudarla desde el menú de carga. Se conserva el tipo, HP y PM del
+     * enemigo activo, que sigue vivo tras la huida.</p>
      */
     private void guardarAlHuir() {
         try {
             Heroe heroe = sesion.getHeroe();
+            Enemigo enemigo = motor.getEnemigo();
             if (sesion.getPartida() == null) {
                 // La partida todavía no existe en BD (el jugador huyó en fase 1 sin
                 // haber ganado ningún combate previo): crear la fila ahora.
@@ -1574,7 +1537,10 @@ public class MazmorraController implements Initializable {
                     heroe.getPuntosGolpe()
                 );
                 p.setPmActual(pmActualHeroe());
-                // Estado EN_CURSO por defecto; sin enemigo activo
+                // Guardar el estado actual del enemigo (sigue vivo tras la huida)
+                p.setTipoEnemigo(enemigo.getTipo());
+                p.setHpEnemigo(enemigo.getPuntosGolpe());
+                p.setPmEnemigo(enemigo.getPm());
                 PartidaDAO.insertar(p);
                 sesion.setPartida(p);
             } else {
@@ -1583,10 +1549,10 @@ public class MazmorraController implements Initializable {
                 p.setHpActual(heroe.getPuntosGolpe());
                 p.setPmActual(pmActualHeroe());
                 p.setEstado(modelo.Partida.Estado.EN_CURSO);
-                // Limpiar datos del enemigo: el héroe escapó, la fase empieza de nuevo
-                p.setTipoEnemigo(null);
-                p.setHpEnemigo(0);
-                p.setPmEnemigo(0);
+                // Guardar el estado actual del enemigo (sigue vivo tras la huida)
+                p.setTipoEnemigo(enemigo.getTipo());
+                p.setHpEnemigo(enemigo.getPuntosGolpe());
+                p.setPmEnemigo(enemigo.getPm());
                 PartidaDAO.actualizar(p);
             }
             PersonajeDAO.actualizarHp(heroe.getId(), heroe.getPuntosGolpe());
@@ -1966,6 +1932,41 @@ public class MazmorraController implements Initializable {
         try {
             URL url = getClass().getResource("/recursos/audio/cursor.wav");
             if (url != null) { sonidoHover = new AudioClip(url.toString()); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Carga el clip {@code ataque.mp3} en memoria para reproducirlo con
+     * latencia mínima al ejecutar ataques normales (héroe y enemigo).
+     * Si el archivo no existe, el sonido queda desactivado sin error fatal.
+     */
+    private void inicializarSonidoAtaque() {
+        try {
+            URL url = getClass().getResource("/recursos/audio/ataque.mp3");
+            if (url != null) { sonidoAtaque = new AudioClip(url.toString()); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Reproduce el clip de audio asociado a una habilidad, si lo tiene.
+     * El clip se carga la primera vez y se reutiliza desde {@link #cacheSonidosHabilidad}.
+     * Si la ruta no existe o la habilidad devuelve {@code null}, no ocurre nada.
+     *
+     * @param habilidad habilidad cuyo audio se quiere reproducir
+     */
+    private void reproducirSonidoHabilidad(Habilidad habilidad) {
+        String ruta = habilidad.getRutaAudio();
+        if (ruta == null) { return; }
+        try {
+            AudioClip clip = cacheSonidosHabilidad.computeIfAbsent(ruta, r -> {
+                URL url = getClass().getResource(r);
+                return url != null ? new AudioClip(url.toString()) : null;
+            });
+            if (clip != null) { clip.play(); }
         } catch (Exception e) {
             e.printStackTrace();
         }

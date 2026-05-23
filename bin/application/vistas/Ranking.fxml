@@ -24,6 +24,8 @@
 
         <ScrollPane fitToWidth="true" prefHeight="380" maxWidth="560"
                     styleClass="scroll-ranking">
+                    <!-- fitToWidth hace que el contenido interno del ScrollPane (VBox) 
+                    se estire horizontalmente para ocupar todo el ancho disponible del ScrollPane -->
             <VBox fx:id="contenedorRanking" spacing="8" alignment="TOP_CENTER">
                 <padding><Insets top="4" right="0" bottom="4" left="0"/></padding>
             </VBox>
@@ -32,7 +34,7 @@
         <Region prefHeight="10"/>
 
         <Button styleClass="btn-menu-secundario"
-                text="←  VOLVER AL MENÚ"
+                text="VOLVER"
                 prefWidth="220" prefHeight="42"
                 onAction="#handleVolver"/>
     </VBox>

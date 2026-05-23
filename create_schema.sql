@@ -38,8 +38,12 @@ CREATE TABLE partidas (
     id_personaje   INTEGER     NOT NULL REFERENCES personajes(id) ON DELETE CASCADE,
     fase_actual    INTEGER     NOT NULL DEFAULT 1 CHECK (fase_actual BETWEEN 1 AND 4),
     hp_actual      INTEGER     NOT NULL CHECK (hp_actual >= 0),
+    pm_actual      INTEGER     NOT NULL DEFAULT 0,
     estado         VARCHAR(15) NOT NULL DEFAULT 'EN_CURSO'
                                CHECK (estado IN ('EN_CURSO','COMPLETADA','DERROTA')),
+    tipo_enemigo   VARCHAR(20) DEFAULT NULL,
+    hp_enemigo     INTEGER     NOT NULL DEFAULT 0,
+    pm_enemigo     INTEGER     NOT NULL DEFAULT 0,
     fecha_guardado TIMESTAMP   NOT NULL DEFAULT NOW()
 );
 

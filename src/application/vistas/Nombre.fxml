@@ -31,14 +31,16 @@
 
         <Region prefHeight="2"/>
 
-        <!--<Label styleClass="icono-central" text="🤖"/> -->
-
         <Label styleClass="label-campo" text="NOMBRE"/>
 
         <TextField fx:id="txtNombre"
                    styleClass="campo-texto"
                    promptText="Escribe tu nombre..."
                    maxWidth="280"/>
+                   
+        <!-- Indica un problema (si hay) al pulsar continuar y lo hace visible.
+        Aunque el label sea invisible ocupa espacio en el layout(visible="false").
+        ATENCIÓN: Con managed="false" produce un salto visual brusco-->
 
         <Label fx:id="lblError" styleClass="label-error" text=""
                visible="false"/>
@@ -52,13 +54,13 @@
                 onAction="#handleContinuar"/>
 
         <Button styleClass="btn-menu-secundario"
-                text="←  VOLVER"
+                text="VOLVER"
                 prefWidth="280" prefHeight="40"
                 onAction="#handleVolver"/>
 
         <Region prefHeight="6"/>
 
-        <Label styleClass="version" text="v1.0.0  •  Nueva Partida"/>
+        <Label styleClass="version" text="Nueva Partida"/>
 
     </VBox>
 

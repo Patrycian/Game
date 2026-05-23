@@ -63,4 +63,16 @@ public interface Habilidad {
     default boolean afectaAlEnemigo() {
         return true;
     }
+
+    /**
+     * Ruta del recurso de audio que debe reproducirse al usar esta habilidad,
+     * relativa al classpath (p. ej. {@code "/recursos/audio/bolaFuego.mp3"}).
+     * Devuelve {@code null} por defecto; las habilidades con sonido propio
+     * deben sobreescribir este método.
+     *
+     * @return ruta del clip de audio, o {@code null} si la habilidad no tiene sonido propio
+     */
+    default String getRutaAudio() {
+        return null;
+    }
 }

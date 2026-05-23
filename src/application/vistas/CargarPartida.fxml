@@ -5,10 +5,15 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.geometry.*?>
 
+<!-- fx>:controller conecta la vista con su clase java controladora -->
+
 <StackPane xmlns:fx="http://javafx.com/fxml"
-           fx:controller="controlador.CargarPartidaController"
+           fx:controller="controlador.CargarPartidaController" 
            stylesheets="@estilos.css"
            styleClass="root-pane">
+           
+    <!-- Panel invisible que sirve como lienzo para partículas -->
+    <!-- mouseTransparent=true hace que no se intercepten clicks del ratón -->
 
     <Pane fx:id="panelParticulas" mouseTransparent="true"/>
 
@@ -21,9 +26,13 @@
         <Rectangle styleClass="linea-decorativa" width="560" height="1"/>
 
         <Region prefHeight="8"/>
+        
+        <!-- lblEstado muestra mensajes de error si algo falla -->
 
         <Label fx:id="lblEstado" styleClass="label-error"
                text="" visible="false"/>
+               
+        <!-- ScrollPane contiene la info de partidas -->
 
         <ScrollPane fitToWidth="true" prefHeight="360" maxWidth="600"
                     styleClass="scroll-ranking">

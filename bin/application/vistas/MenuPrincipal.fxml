@@ -21,15 +21,19 @@
         </padding>
 
         <Rectangle styleClass="linea-decorativa" width="280" height="1"/>
+        
+        <!-- &#10; salto de línea en XML -->
 
         <Label styleClass="titulo" text="LOST&#10;REALM"
                alignment="CENTER" textAlignment="CENTER"/>
 
-        <Label styleClass="subtitulo" text="✦ El último legado ✦"/>
+        <Label styleClass="subtitulo" text="✦ EL Reino Perdido ✦"/>
 
         <Rectangle styleClass="linea-decorativa" width="280" height="1"/>
 
         <Region prefHeight="10"/>
+        
+        <!-- Opciones menú -->
 
         <Button fx:id="btnNuevaPartida"
                 styleClass="btn-menu"
@@ -58,7 +62,7 @@
         <Region prefHeight="6"/>
 
         <Label styleClass="version"
-               text="v1.0.0  •  Menú Principal"/>
+               text="Menú Principal"/>
 
     </VBox>
 

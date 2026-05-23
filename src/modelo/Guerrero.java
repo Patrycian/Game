@@ -223,6 +223,11 @@ public class Guerrero extends Heroe {
 				}
 
 				@Override
+				public String getRutaAudio() {
+					return "/recursos/audio/energia.mp3";
+				}
+
+				@Override
 				public boolean afectaAlEnemigo() {
 					return false;
 				}

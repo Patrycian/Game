@@ -22,9 +22,17 @@ public class ConexionDB {
 
     private static Connection instancia = null;
 
-    /** Devuelve la conexión, creándola si no existe o está cerrada. */
+    /**
+     * Devuelve la conexión, creándola o reconectando si es necesario.
+     *
+     * <p>Además de comprobar {@code isClosed()}, valida la conexión con
+     * {@code isValid(2)} para detectar conexiones "zombie" que el servidor
+     * PostgreSQL cerró silenciosamente (p. ej. por timeout de inactividad)
+     * pero que Java aún considera abiertas. Sin esta comprobación los
+     * guardados fallan silenciosamente si la app lleva tiempo en reposo.</p>
+     */
     public static Connection getConexion() throws SQLException {
-        if (instancia == null || instancia.isClosed()) {
+        if (instancia == null || instancia.isClosed() || !instancia.isValid(2)) {
             try {
                 Class.forName("org.postgresql.Driver");
             } catch (ClassNotFoundException e) {
