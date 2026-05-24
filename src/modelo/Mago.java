@@ -4,23 +4,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Mago – alto poder mágico, baja defensa y vida.
- *
- * <h3>Habilidades disponibles en combate:</h3>
- * <ul>
- * <li><b>Bola de Fuego</b>: inflige poder × 2 de daño mágico directo, ignorando
- * la defensa del enemigo. Coste: {@value #COSTE_BOLA_FUEGO} PM.</li>
- * <li><b>Escudo Arcano</b>: barrera mágica que absorbe por completo el
- * siguiente ataque enemigo. Coste: {@value #COSTE_ESCUDO} PM.</li>
- * </ul>
- */
 public class Mago extends Magico {
 
 	// ── Variables ─────────────────────────────────────────────────────────────
 
 	private static final int COSTE_BOLA_FUEGO = 15;
-	private static final int COSTE_ESCUDO     = 10;
+	private static final int COSTE_ESCUDO = 10;
 
 	private boolean escudoActivo = false;
 
@@ -47,11 +36,6 @@ public class Mago extends Magico {
 		return "/recursos/imagen/mago.png";
 	}
 
-	/**
-	 * Lista inmutable de las dos habilidades del mago.
-	 *
-	 * @return catálogo de habilidades del mago
-	 */
 	@Override
 	public List<Habilidad> getHabilidades() {
 		return habilidades;
@@ -97,8 +81,8 @@ public class Mago extends Magico {
 				@Override
 				public String getDescripcion() {
 					return "Lanza una bola de fuego que inflige" + " el doble de tu poder (poder × 2)"
-							+ " de daño mágico directo," + " ignorando la defensa del enemigo."
-							+ "  Coste: " + COSTE_BOLA_FUEGO + " PM";
+							+ " de daño mágico directo," + " ignorando la defensa del enemigo." + "  Coste: "
+							+ COSTE_BOLA_FUEGO + " PM";
 				}
 
 				@Override
