@@ -21,40 +21,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.ResourceBundle;
 
-/**
- * Controlador de la pantalla de ranking (Top 10 jugadores).
- *
- * <p>Recupera de la BD los 10 jugadores con mayor puntuación mediante
- * {@link JugadorDAO#obtenerRanking()} y los muestra en una lista vertical
- * ordenada de mayor a menor. Los tres primeros reciben una medalla (🥇🥈🥉)
- * y el primero tiene un fondo y borde dorado diferenciado.</p>
- *
- * <h3>Aspectos visuales:</h3>
- * <ul>
- *   <li>Fondo con 60 partículas doradas animadas (semilla fija {@code 22}).</li>
- *   <li>Cada fila se construye dinámicamente con {@link #crearFilaRanking}.</li>
- *   <li>Si no hay jugadores o hay error de BD, se muestra un label informativo.</li>
- * </ul>
- */
 public class RankingController implements Initializable {
 
-    // ── FXML ─────────────────────────────────────────────────────────────────
-    /** Panel de fondo con las partículas doradas animadas. */
     @FXML private javafx.scene.layout.Pane panelParticulas;
 
-    /**
-     * Contenedor vertical donde se añaden dinámicamente las filas del ranking.
-     * Se limpia y rellena en cada llamada a {@link #cargarRanking()}.
-     */
     @FXML private VBox contenedorRanking;
 
-    /**
-     * Llamado automáticamente por JavaFX al cargar el FXML.
-     * Genera las partículas de fondo y carga el ranking desde la BD.
-     *
-     * @param url URL del FXML (no se usa directamente)
-     * @param rb  ResourceBundle de localización (no se usa directamente)
-     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         generarParticulas();
@@ -63,14 +35,7 @@ public class RankingController implements Initializable {
 
     /**
      * Recupera el Top 10 de jugadores desde la BD y construye una fila visual
-     * por cada uno, con medalla y puntuación.
-     *
-     * <p>Los tres primeros puestos muestran medalla emoji (🥇🥈🥉);
-     * el resto muestran su número de posición (4., 5., …).</p>
-     *
-     * <p>Si la BD no tiene jugadores registrados, muestra el mensaje
-     * "Aún no hay partidas registradas." en el contenedor. Si ocurre un error
-     * de conexión, muestra un aviso de error en rojo.</p>
+     * pora cada uno, con medalla y puntuación.
      */
     private void cargarRanking() {
         contenedorRanking.getChildren().clear();
@@ -101,21 +66,6 @@ public class RankingController implements Initializable {
 
     /**
      * Crea una fila del ranking con posición, nick y puntuación del jugador.
-     *
-     * <p>La fila del primer puesto tiene fondo {@code #1c1830} y borde dorado
-     * para destacarla visualmente. El resto usa fondo {@code #14141f} y borde
-     * más oscuro.</p>
-     *
-     * <p>Estructura de la fila (izquierda a derecha):</p>
-     * <pre>
-     *   [posición]   [nick]   [───────spacer───────]   [pts]
-     * </pre>
-     *
-     * @param posicion  medalla emoji o número de posición (p. ej. "🥇" o "4.")
-     * @param nick      nombre del jugador
-     * @param puntos    puntuación acumulada del jugador
-     * @param esPrimero {@code true} si es el jugador en primer lugar (estilo diferenciado)
-     * @return HBox con la fila completa lista para añadir al contenedor
      */
     private HBox crearFilaRanking(String posicion, String nick, int puntos, boolean esPrimero) {
         HBox fila = new HBox(20);
@@ -163,11 +113,7 @@ public class RankingController implements Initializable {
     }
 
     /**
-     * Genera 60 partículas doradas en posiciones aleatorias del fondo y les
-     * aplica una animación de parpadeo continuo.
-     *
-     * <p>Se usa la semilla fija {@code 22} para reproducibilidad visual.
-     * Duración de parpadeo aleatoria entre 2 y 5 s, con desfase de 0 a 4 s.</p>
+     * Generación de partículas doradas
      */
     private void generarParticulas() {
         Random rnd = new Random(22);
