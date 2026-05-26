@@ -180,12 +180,6 @@
                             onAction="#handleObjetos"
                             maxWidth="Infinity" prefHeight="36" minHeight="32"
                             VBox.vgrow="ALWAYS"/>
-                    <Button fx:id="btnHabilidad"
-                            styleClass="btn-batalla-barra"
-                            text="HABILIDAD"
-                            onAction="#handleHabilidad"
-                            maxWidth="Infinity" prefHeight="36" minHeight="32"
-                            VBox.vgrow="ALWAYS"/>
                     <Button fx:id="btnMagia"
                             styleClass="btn-batalla-barra"
                             text="✨ MAGIA"

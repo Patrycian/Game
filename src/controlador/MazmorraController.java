@@ -1,5 +1,6 @@
 package controlador;
 
+import controlador.util.Particulas;
 import dao.CombateDAO;
 import dao.JugadorDAO;
 import dao.PartidaDAO;
@@ -23,8 +24,6 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -35,6 +34,7 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,302 +46,179 @@ public class MazmorraController implements Initializable {
 	@FXML
 	private Label lblFase;
 
-	/** Nombre y tipo del héroe. Formato: "Gandalf (MAGO)". */
 	@FXML
 	private Label lblNombreHeroe;
 
-	/** HP actual / HP máximo del héroe. Se actualiza tras cada turno. */
 	@FXML
 	private Label lblHpHeroe;
 
-	/** Barra de vida del héroe. Verde > 50 %, naranja > 25 %, rojo ≤ 25 %. */
 	@FXML
 	private ProgressBar barraVidaHeroe;
 
-	/** Nombre y tipo del enemigo actual. */
 	@FXML
 	private Label lblNombreEnemigo;
 
-	/**
-	 * Barra de vida del enemigo con la misma escala de colores que la del héroe.
-	 */
 	@FXML
 	private ProgressBar barraVidaEnemigo;
 
-	/** HP actual / HP máximo del enemigo. */
 	@FXML
 	private Label lblHpEnemigo;
 
-	/** Imagen del sprite del héroe. */
 	@FXML
 	private ImageView imgHeroe;
 
-	/** Imagen del sprite del enemigo. */
 	@FXML
 	private ImageView imgEnemigo;
 
-	/**
-	 * Prompt de la caja de diálogo.
-	 */
 	@FXML
-	private Label lblPrompt;
+	private Label lblPrompt; // prompt caja diálogo
 
-	/** Área de texto donde se acumula el log de combate */
 	@FXML
 	private TextArea txtLog;
 
-	/**
-	 * Label de resultado al terminar el combate.
-	 */
 	@FXML
 	private Label lblResultado;
 
-	/**
-	 * Menú principal de batalla
-	 */
 	@FXML
 	private VBox menuBatalla;
 
-	/** Botón de ataque básico. */
 	@FXML
 	private Button btnAtacar;
 
-	/**
-	 * Botón de objetos.
-	 */
 	@FXML
 	private Button btnObjetos;
 
-	/**
-	 * Botón de habilidad (cambiar)
-	 */
-	@FXML
-	private Button btnHabilidad;
-
-	/**
-	 * Botón de habilidades mágicas
-	 */
 	@FXML
 	private Button btnMagia;
 
-	/**
-	 * Botón de habilidad
-	 */
 	@FXML
 	private Button btnHabilidades;
 
-	/** Botón de huida; abre un diálogo de confirmación antes de guardar y salir. */
 	@FXML
 	private Button btnHuir;
 
-	/**
-	 * Botón que aparece al terminar el combate.
-	 */
 	@FXML
 	private Button btnContinuar;
 
-	/**
-	 * Panel del submenú de magia
-	 */
 	@FXML
 	private VBox menuMagia;
 
-	/**
-	 * Contenedor donde se generan los botones de habilidades mágicas.
-	 */
 	@FXML
-	private VBox contenedorHabilidades;
+	private VBox contenedorHabilidades; // se generan los botones de habilidades mágicas
 
-	/**
-	 * Panel del submenú de habilidades del Guerrero.
-	 */
 	@FXML
 	private VBox menuHabilidades;
 
-	/**
-	 * Contenedor donde se generan dinámicamente los botones de habilidades del
-	 * Guerrero.
-	 */
 	@FXML
 	private VBox contenedorHabilidadesGuerrero;
 
-	/** Panel del submenú de objetos (pociones). */
 	@FXML
 	private VBox menuObjetos;
 
-	/**
-	 * Botón de poción de curación en el submenú de objetos.
-	 */
 	@FXML
 	private Button btnPocionCuracion;
 
-	/**
-	 * Botón de poción mágica en el submenú de objetos.
-	 */
 	@FXML
 	private Button btnPocionMagica;
 
-	/**
-	 * Fila del panel de héroe que contiene la etiqueta "PM" y la barra de PM.
-	 */
 	@FXML
 	private HBox filaPm;
 
-	/**
-	 * Fila con el texto numérico de PM del héroe (ejemplo: "20 / 30 PM").
-	 */
 	@FXML
 	private HBox filaNumPm;
 
-	/** Barra de progreso que representa los PM actuales del héroe mágico. */
 	@FXML
 	private ProgressBar barraPoderMagico;
 
-	/** Label numérico de PM del héroe. */
 	@FXML
 	private Label lblPmHeroe;
 
-	/**
-	 * Fila con etiqueta "EN" y barra de Energía del Guerrero.
-	 */
 	@FXML
 	private HBox filaEnergia;
 
-	/** Fila con el texto numérico de Energía. */
 	@FXML
 	private HBox filaNumEnergia;
 
-	/**
-	 * Barra de progreso que representa la Energía actual del Guerrero.
-	 */
 	@FXML
 	private ProgressBar barraEnergia;
 
-	/** Label numérico de Energía. */
 	@FXML
 	private Label lblEnergiaHeroe;
 
-	/**
-	 * Fila del panel de enemigo con la etiqueta "PM" y la barra de PM.
-	 */
 	@FXML
 	private HBox filaPmEnemigo;
 
-	/**
-	 * Fila con el texto numérico de PM del enemigo.
-	 */
 	@FXML
 	private HBox filaNumPmEnemigo;
 
-	/** Barra de progreso que representa los PM actuales del enemigo mágico. */
 	@FXML
 	private ProgressBar barraPmEnemigo;
 
-	/** Label numérico de PM del enemigo. */
 	@FXML
 	private Label lblPmEnemigo;
 
-	/**
-	 * StackPane semiopaco que cubre el combate mientras el jugador decide si huir.
-	 * Se muestra al pulsar HUIR y desaparece al confirmar o cancelar.
-	 */
 	@FXML
 	private StackPane overlayHuida;
 
-	/** Línea base "Probabilidad base: 40%" del desglose. */
 	@FXML
-	private Label lblHuidaBase;
+	private Label lblHuidaBase; // Línea base "Probabilidad base: 40%" del desglose.
 
-	/** Modificador de HP del héroe. */
 	@FXML
-	private Label lblHuidaVida;
+	private Label lblHuidaVida; // Modificador de HP del héroe.
 
-	/** Modificador de clase del héroe. */
 	@FXML
-	private Label lblHuidaClase;
+	private Label lblHuidaClase; // modificador clase heroe
 
-	/** Modificador según el tipo de enemigo. */
 	@FXML
-	private Label lblHuidaEnemigo;
+	private Label lblHuidaEnemigo; // modificador tipo enemigo
 
-	/** Label de probabilidad destacado en el panel. */
 	@FXML
 	private Label lblHuidaProbFinal;
 
-	/** Botón del overlay de huida. */
 	@FXML
 	private Button btnConfirmarHuida;
 
-	/** Botón del overlay de huida. */
 	@FXML
 	private Button btnCancelarHuida;
 
-	/**
-	 * StackPane semiopaco que cubre la pantalla mientras el héroe descansa tras una
-	 * huida exitosa. Muestra la animación de recuperación de HP (y PM) antes de
-	 * navegar al menú principal.
-	 */
 	@FXML
 	private StackPane overlayDescanso;
 
-	/**
-	 * Barra de progreso animada que refleja la vida recuperada.
-	 */
 	@FXML
 	private ProgressBar barraDescansoHp;
 
-	/** Label que muestra la vida recuperada. */
 	@FXML
 	private Label lblDescansoHp;
 
-	/**
-	 * Fila entera del panel de maná durante el descanso.
-	 */
 	@FXML
 	private VBox filaDescansopm;
 
-	/** Barra de progreso animada del maná recuperado durante el descanso. */
 	@FXML
 	private ProgressBar barraDescansoPm;
 
-	/** Label que muestra el maná recuperado */
 	@FXML
 	private Label lblDescansoPm;
 
-	/**
-	 * Barra de progreso general del overlay de descanso.
-	 */
 	@FXML
 	private ProgressBar barCargaDescanso;
 
 	// PANTALLA DE CARGA
-	/**
-	 * StackPane opaco que cubre toda la ventana entre fases. Se muestra al pulsar
-	 * "Siguiente Fase" y desaparece automáticamente cuando la barra de progreso
-	 * llega al 100 %.
-	 */
+
 	@FXML
 	private StackPane pantallaEntrefase;
 
-	/** Panel de partículas doradas animadas dentro del overlay de carga. */
 	@FXML
 	private Pane panelParticulasCarga;
 
-	/**
-	 * Emoji grande que identifica la fase.
-	 */
 	@FXML
 	private Label lblCargaIcono;
 
-	/** Label "FASE N" en el overlay de carga. */
 	@FXML
 	private Label lblCargaFase;
 
-	/** Label que indica la fase. */
 	@FXML
-	private Label lblCargaSubtitulo;
+	private Label lblCargaSubtitulo; // Label que indica la fase.
 
-	/** Frase temática/consejo de la fase mostrada durante la carga. */
 	@FXML
 	private Label lblCargaConsejo;
 
@@ -364,100 +241,69 @@ public class MazmorraController implements Initializable {
 	/** Motor de combate por turnos; gestiona ataques, contraataques y resultado. */
 	private MotorCombate motor;
 
-	/**
-	 * Indica si el combate actual ha terminado (victoria o derrota).
-	 */
 	private boolean combateTerminado = false;
 
-	/**
-	 * Reproductor de música de fondo
-	 */
 	private MediaPlayer mediaPlayer;
 
-	/**
-	 * Clip de sonido corto
-	 */
 	private AudioClip sonidoHover;
 
-	/** Clip de sonido que suena al ejecutar un ataque normal. */
 	private AudioClip sonidoAtaque;
 
-	/** Map de clips de audio de habilidades */
 	private final Map<String, AudioClip> cacheSonidosHabilidad = new HashMap<>();
 
 	// INVENTARIO
 
-	/**
-	 * Pociones de curación disponibles.
-	 */
 	private int pocionesRestantes;
 
-	/** Cantidad de HP que restaura cada poción de curación. */
 	private static final int CURACION_POCION = 30;
 
-	/**
-	 * Pociones mágicas disponibles.
-	 */
 	private int pocionesMagicasRestantes;
 
-	/** Cantidad de PM que restaura cada poción mágica. */
 	private static final int RESTAURACION_PM_POCION = 10;
 
-	/**
-	 * Porcentaje de vida (y maná, si aplica) que se recupera al descansar tras una
-	 * huida exitosa antes de volver al menú principal.
-	 */
-	private static final int RECUPERACION_HUIDA_PCT = 25;
+	private static final int RECUPERACION_HUIDA_PCT = 25; //ph y pm recuperado tras huida
 
-	// INITIALIZE
+	// INITIALIZE ----------------
 
 	@Override
-	public void initialize(URL url, ResourceBundle rb) {
-		/* configuración en iniciarSesion */ }
+	public void initialize(URL url, ResourceBundle rb) { 
+		/* configurado en iniciarSesion */ }
 
 	/**
-	 * Punto de entrada principal del controlador. Recibe la sesión del controlador
-	 * anterior ({@link SeleccionHeroeController} o
-	 * {@link CargarPartidaController}), inicializa el inventario y arranca el
-	 * combate de la fase actual.
+	 * Punto de entrada principal del controlador.
 	 */
 	public void iniciarSesion(GameSession sesion) {
-		this.sesion = sesion;
-		// El inventario se inicializa aquí, una sola vez para toda la partida
+		this.sesion = sesion; //guardamos referencia sesión
 		pocionesRestantes = 3;
 		pocionesMagicasRestantes = 2;
-		inicializarSonidoHover();
-		inicializarSonidoAtaque();
+		sonidoHover = cargarAudioClip("/recursos/audio/cursor.wav");
+		sonidoAtaque = cargarAudioClip("/recursos/audio/ataque.mp3");
 		configurarSonidoBotones();
-		// Mostrar pantalla de carga antes de la fase actual (1 para partida nueva,
-		// o la fase guardada para partida cargada). Al terminar, llamará a
-		// prepararCombate() automáticamente.
+		//Mostrar pantalla de carga antes de la fase actual
 		mostrarPantallaCarga();
 	}
 
-	// ── Preparación ───────────────────────────────────────────────────────────
-
 	/**
 	 * Configura toda la interfaz para el combate de la fase actual. Se llama al
-	 * inicio de cada fase (incluyendo la primera).
+	 * inicio de cada fase.
 	 */
 	private void prepararCombate() {
 		int fase = sesion.getFaseActual();
 		Heroe heroe = sesion.getHeroe();
 
-		// Si hay una partida guardada con un enemigo activo (HP > 0), restaurarlo;
-		// en caso contrario (nueva fase o enemigo derrotado) generarlo aleatoriamente.
 		Partida partidaActual = sesion.getPartida();
 		Enemigo enemigo;
+		
 		if (partidaActual != null && partidaActual.getTipoEnemigo() != null && partidaActual.getHpEnemigo() > 0) {
-			enemigo = MotorCombate.generarEnemigoDeTipo(partidaActual.getTipoEnemigo());
+			enemigo = MotorCombate.generarEnemigoDeTipo(partidaActual.getTipoEnemigo()); //si existe se regenera
 			enemigo.setPuntosGolpe(partidaActual.getHpEnemigo());
-			enemigo.setPm(partidaActual.getPmEnemigo()); // 0 si no usa magia, correcto igualmente
+			enemigo.setPm(partidaActual.getPmEnemigo()); 
 		} else {
-			enemigo = MotorCombate.generarEnemigo(fase);
+			enemigo = MotorCombate.generarEnemigo(fase);//aleatorio
 		}
 
-		heroe.reiniciarHabilidad(); // la habilidad especial se recarga entre fases
+		heroe.reiniciarHabilidad(); // resetea habilidades especiales
+
 		motor = new MotorCombate(heroe, enemigo);
 		combateTerminado = false;
 
@@ -466,27 +312,15 @@ public class MazmorraController implements Initializable {
 
 		// Héroe: nombre, imagen y barra de vida
 		lblNombreHeroe.setText(heroe.getNombre() + " (" + heroe.getTipo() + ")");
-		try {
-			Image imgSrc = new Image(getClass().getResourceAsStream(heroe.getRutaImagen()));
-			imgHeroe.setImage(imgSrc);
-		} catch (Exception e) {
-			// Si la imagen no carga, el juego continúa sin el sprite (no es un error fatal)
-			e.printStackTrace();
-		}
+		cargarSprite(imgHeroe, heroe.getRutaImagen());
 		actualizarBarraHeroe();
 
 		// Enemigo: nombre, imagen y barra de vida
 		lblNombreEnemigo.setText(enemigo.getNombre() + " (" + enemigo.getTipo() + ")");
-		try {
-			Image imgEnemSrc = new Image(getClass().getResourceAsStream(enemigo.getRutaImagen()));
-			imgEnemigo.setImage(imgEnemSrc);
-		} catch (Exception e) {
-			// Si la imagen no carga, el juego continúa sin el sprite (no es un error fatal)
-			e.printStackTrace();
-		}
+		cargarSprite(imgEnemigo, enemigo.getRutaImagen());
 		actualizarBarraEnemigo();
 
-		// Barra de PM del enemigo (solo para Saga y Dragón, que tienen pmMax > 0)
+		// Barra de PM del enemigo 
 		boolean enemigoTienePm = enemigo.tienePmMax();
 		filaPmEnemigo.setVisible(enemigoTienePm);
 		filaPmEnemigo.setManaged(enemigoTienePm);
@@ -499,12 +333,6 @@ public class MazmorraController implements Initializable {
 		// Visibilidad de los botones de habilidad según la clase del héroe
 		boolean esMagico = heroe instanceof Magico;
 		boolean esGuerrero = heroe instanceof Guerrero;
-
-		// btnHabilidad: solo para clases sin submenú propio
-		// (actualmente ninguna clase llega a este caso, APUNTE: CAMBIAR)
-
-		btnHabilidad.setVisible(!esMagico && !esGuerrero);
-		btnHabilidad.setManaged(!esMagico && !esGuerrero);
 
 		// btnMagia: submenú de hechizos para Mago y Clérigo
 		btnMagia.setVisible(esMagico);
@@ -574,8 +402,7 @@ public class MazmorraController implements Initializable {
 		if (btnContinuar != null) {
 			btnContinuar.setVisible(false);
 			btnContinuar.setManaged(false);
-			// Restaurar el handler por defecto (puede haberse sobreescrito tras una
-			// derrota)
+			// Restaurar el handler por defecto (puede haberse sobreescrito tras una derrota)
 			btnContinuar.setOnAction(e -> handleContinuar());
 		}
 
@@ -590,7 +417,7 @@ public class MazmorraController implements Initializable {
 		btnHuir.setDisable(false);
 
 		// Música
-		iniciarMusica(sesion.getFaseActual() == 4);
+		iniciarMusica(sesion.getFaseActual() == 4); //inicia música, usa pista jefe si fase == 4
 	}
 
 	// ── Handlers ──────────────────────────────────────────────────────────────
@@ -604,20 +431,13 @@ public class MazmorraController implements Initializable {
 	}
 
 	/**
-	 * Maneja la pulsación del botón "HABILIDAD" (CAMBIAR).
-	 */
-	@FXML
-	private void handleHabilidad() {
-	}
-
-	/**
 	 * Maneja la pulsación del botón "OBJETOS". Abre el submenú de objetos si el
 	 * inventario tiene al menos un objeto disponible. Si el inventario está vacío
 	 * muestra un mensaje en el log y no abre el submenú.
 	 */
 	@FXML
 	private void handleObjetos() {
-		if (combateTerminado) {
+		if (combateTerminado) { //si el combate terminó, ignoramos
 			return;
 		}
 		if (pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0) {
@@ -625,10 +445,7 @@ public class MazmorraController implements Initializable {
 			return;
 		}
 		actualizarSubmenuObjetos();
-		menuBatalla.setVisible(false);
-		menuBatalla.setManaged(false);
-		menuObjetos.setVisible(true);
-		menuObjetos.setManaged(true);
+		abrirSubmenu(menuObjetos);
 	}
 
 	/**
@@ -637,7 +454,7 @@ public class MazmorraController implements Initializable {
 	 */
 	@FXML
 	private void handleHuir() {
-		if (combateTerminado) {
+		if (combateTerminado) { //evita abrir el overlay si el combate terminó
 			return;
 		}
 
@@ -646,7 +463,7 @@ public class MazmorraController implements Initializable {
 
 		// Modificador por HP
 
-		int pctVida = (int) ((heroe.getPuntosGolpe() * 100.0) / heroe.getPuntosGolpeMax());
+		int pctVida = (int) ((heroe.getPuntosGolpe() * 100.0) / heroe.getPuntosGolpeMax()); //calcula el % de vida héroe actual
 		int modVida;
 		String msgVida;
 		if (pctVida < 25) {
@@ -752,7 +569,6 @@ public class MazmorraController implements Initializable {
 			agregarLog("");
 
 			btnAtacar.setDisable(true);
-			btnHabilidad.setDisable(true);
 			btnMagia.setDisable(true);
 			btnHabilidades.setDisable(true);
 			btnObjetos.setDisable(true);
@@ -778,9 +594,6 @@ public class MazmorraController implements Initializable {
 			pausarYEjecutar(Duration.millis(200), () -> animarGolpe(imgHeroe));
 
 			actualizarBarraHeroe();
-			if (heroe instanceof Magico) {
-				actualizarBarraPm();
-			}
 
 			if (!heroe.estaVivo()) {
 				combateTerminado = true;
@@ -795,8 +608,8 @@ public class MazmorraController implements Initializable {
 	 */
 	@FXML
 	private void handleCancelarHuida() {
-		overlayHuida.setVisible(false);
-		overlayHuida.setManaged(false);
+		overlayHuida.setVisible(false); //ocultamos
+		overlayHuida.setManaged(false); //elimina el overlay del flujo del layout
 	}
 
 	/**
@@ -828,29 +641,24 @@ public class MazmorraController implements Initializable {
 	}
 
 	/**
-	 * Deshabilita todos los botones de acción de combate mientras se procesa un
-	 * turno para evitar que el jugador pueda enviar múltiples acciones simultáneas.
+	 * Habilita o deshabilita todos los botones de acción de combate.Se llama con false al inicio
+	 * de cada turno para evitar acciones dobles.
 	 */
-	private void desactivarBotonesCombate() {
-		btnAtacar.setDisable(true);
-		btnMagia.setDisable(true);
-		btnHabilidades.setDisable(true);
-		btnHabilidad.setDisable(true);
-		btnObjetos.setDisable(true);
-		btnHuir.setDisable(true);
-	}
+	private void setEstadoBotonesCombate(boolean activos) {
+		boolean deshabilitar = !activos;
+		btnAtacar.setDisable(deshabilitar);
+		btnMagia.setDisable(deshabilitar);
+		btnHabilidades.setDisable(deshabilitar);
+		btnHuir.setDisable(deshabilitar);
 
-	/**
-	 * Reactiva los botones de acción tras completar el turno.
-	 */
-	private void activarBotonesCombate() {
-		btnAtacar.setDisable(false);
-		btnHuir.setDisable(false);
-		btnMagia.setDisable(false);
-		btnHabilidades.setDisable(false);
-		btnHabilidad.setDisable(false);
-		// Objetos: solo si quedan pociones
+		if (!activos) { //si se deshabilita todo, el inventario se bloquea
+			btnObjetos.setDisable(true);
+			return;
+		}
+
+		// Objetos
 		btnObjetos.setDisable(pocionesRestantes <= 0 && pocionesMagicasRestantes <= 0);
+
 		// Reconstruir submenús con el estado actualizado
 		Heroe heroeActual = sesion.getHeroe();
 		if (heroeActual instanceof Magico) {
@@ -868,6 +676,7 @@ public class MazmorraController implements Initializable {
 	private void actualizarTodasLasBarras() {
 		actualizarBarraHeroe();
 		actualizarBarraEnemigo();
+		
 		if (sesion.getHeroe() instanceof Magico) {
 			actualizarBarraPm();
 		}
@@ -889,7 +698,7 @@ public class MazmorraController implements Initializable {
 			combateTerminado = true;
 			procesarFinCombate(res);
 		} else {
-			activarBotonesCombate();
+			setEstadoBotonesCombate(true);
 		}
 	}
 
@@ -900,7 +709,7 @@ public class MazmorraController implements Initializable {
 		if (combateTerminado) { // evita que acciones tardías procesen turno
 			return;
 		}
-		desactivarBotonesCombate();
+		setEstadoBotonesCombate(false);
 
 		switch (accion) {
 		case ATAQUE:
@@ -923,39 +732,40 @@ public class MazmorraController implements Initializable {
 		if (sonidoAtaque != null) {
 			sonidoAtaque.play();
 		}
-		motor.ejecutarAtaqueBasico().forEach(this::agregarLog);
-		actualizarBarraEnemigo();
+		// :: pasa el método como ref
+		motor.ejecutarAtaqueBasico().forEach(this::agregarLog); //ejecuta el ataque en motor y añade cada línea de resultado al log
+		actualizarBarraEnemigo(); //refleja el daño inflingido
 		if (motor.getEnemigo().tienePmMax()) {
 			actualizarBarraPmEnemigo();
 		}
 		animarGolpe(imgEnemigo);
 
-		if (motor.haTerminado()) {
+		if (motor.haTerminado()) { //si derrotamos al enemigo
 			agregarLog("");
 			actualizarTodasLasBarras();
 			combateTerminado = true;
-			procesarFinCombate(motor.getResultado());
+			procesarFinCombate(motor.getResultado()); 
 			return;
 		}
-		// La energía del Guerrero se regenera solo con ataques normales
-		ejecutarFase2Enemiga(/* regenerarEnergia= */ true);
+		// Pasamos a fase 2
+		ejecutarFase2Enemiga(true);
 	}
 
 	/**
-	 * maneja habilidad especial elegida desde el submenú.
+	 * Maneja habilidad especial elegida desde el submenú.
 	 */
 	private void ejecutarTurnoHabilidad(Habilidad habilidad) {
 		if (combateTerminado) {
 			return;
 		}
-		desactivarBotonesCombate();
+		setEstadoBotonesCombate(false);
 
 		Heroe heroe = sesion.getHeroe();
 
-		// Verificar recursos antes de actuar
+		// Verificamos recursos
 		if (!habilidad.puedeUsarse(heroe)) {
 			agregarLog("⚠ No puedes usar " + habilidad.getNombre() + "  — " + motivoNoDisponible(heroe, habilidad));
-			activarBotonesCombate();
+			setEstadoBotonesCombate(true);
 			return;
 		}
 
@@ -970,7 +780,7 @@ public class MazmorraController implements Initializable {
 			animarGolpe(imgEnemigo);
 		}
 
-		// Verifica si el combate ha terminado
+		// Verificamos si el combate ha terminado
 		motor.verificarResultado().forEach(this::agregarLog);
 
 		if (motor.haTerminado()) {
@@ -981,12 +791,11 @@ public class MazmorraController implements Initializable {
 		}
 
 		// Las habilidades especiales no regeneran Energía del Guerrero
-		ejecutarFase2Enemiga(/* regenerarEnergia= */ false);
+		ejecutarFase2Enemiga(false);
 	}
 
 	/**
-	 * Determina el motivo por el que una habilidad no puede usarse en este momento,
-	 * para mostrarlo en el botón o en el log.
+	 * Devuelve una cadena explicando el por qué una habilidad no está disponible.
 	 */
 	private String motivoNoDisponible(Heroe heroe, Habilidad habilidad) {
 		if (habilidad.getTipoRecurso() == TipoRecurso.ENERGIA && heroe instanceof Guerrero) {
@@ -997,7 +806,7 @@ public class MazmorraController implements Initializable {
 			Magico m = (Magico) heroe;
 			return m.getPm() < habilidad.getCoste() ? "(PM insuf.)" : "(activa)";
 		}
-		return "(no disponible)";
+		return "(no disponible)"; //Por defecto
 	}
 
 	/**
@@ -1016,7 +825,7 @@ public class MazmorraController implements Initializable {
 				hpCurado, heroe.getNombre(), heroe.getPuntosGolpe(), heroe.getPuntosGolpeMax()));
 		actualizarBarraHeroe(); // refleja la curación antes de la pausa
 
-		ejecutarFase2Enemiga(/* regenerarEnergia= */ false);
+		ejecutarFase2Enemiga(false);
 	}
 
 	/**
@@ -1044,19 +853,23 @@ public class MazmorraController implements Initializable {
 	}
 
 	/**
-	 * Ejecuta la Fase 2 del turno: tras una pausa de 750 ms, el enemigo reacciona,
+	 * Ejecuta la Fase 2 del turno: tras una pausa, el enemigo reacciona,
 	 * se actualizan todas las barras y se cierra el turno.
 	 */
 	private void ejecutarFase2Enemiga(boolean regenerarEnergia) {
-		pausarYEjecutar(Duration.millis(750), () -> {
+		pausarYEjecutar(Duration.millis(750), () -> { //pausa antes del ataque
+			
 			if (sonidoAtaque != null) {
 				sonidoAtaque.play();
 			}
-			motor.ejecutarReaccionEnemigo().forEach(this::agregarLog);
+			
+			motor.ejecutarReaccionEnemigo().forEach(this::agregarLog); //this:: pasamos método como ref
 			agregarLog("");
+			
 			if (regenerarEnergia) {
 				regenerarEnergiaGuerrero();
 			}
+			
 			actualizarTodasLasBarras();
 			pausarYEjecutar(Duration.millis(150), () -> animarGolpe(imgHeroe));
 			cerrarTurno();
@@ -1064,8 +877,7 @@ public class MazmorraController implements Initializable {
 	}
 
 	/**
-	 * Crea una PauseTransition con la duración indicada y ejecuta accionAlTerminar
-	 * cuando finaliza.
+	 * Crea una pausa no bloqueante y ejecuta accionAlTerminar cuando finaliza.
 	 */
 	private void pausarYEjecutar(Duration duracion, Runnable accionAlTerminar) {
 		PauseTransition pausa = new PauseTransition(duracion);
@@ -1074,13 +886,12 @@ public class MazmorraController implements Initializable {
 	}
 
 	/**
-	 * Procesa el fin del combate: desactiva los botones, registra el combate en BD,
-	 * actualiza la puntuación (si es victoria) y muestra el botón de continuar.
+	 * Procesa el fin del combate. Desactiva los botones, registra el combate en BD,
+	 * actualiza la puntuación y muestra el botón de continuar.
 	 */
 	private void procesarFinCombate(ResultadoCombate resultado) {
 		// Deshabilitar todos los botones de acción
 		btnAtacar.setDisable(true);
-		btnHabilidad.setDisable(true);
 		btnMagia.setDisable(true);
 		btnHabilidades.setDisable(true);
 		btnObjetos.setDisable(true);
@@ -1097,7 +908,13 @@ public class MazmorraController implements Initializable {
 			handleVolverMenuHabilidades();
 		}
 
-		boolean victoria = resultado == ResultadoCombate.VICTORIA;
+		boolean victoria;
+		
+		if (resultado == ResultadoCombate.VICTORIA) {
+		    victoria = true;
+		} else {
+		    victoria = false;
+		}
 
 		// Asegurar que la partida existe en BD para poder registrar el combate.
 		asegurarPartidaCreada();
@@ -1165,19 +982,15 @@ public class MazmorraController implements Initializable {
 	// ── Submenú de Magia ──────────────────────────────────────────────────────
 
 	/**
-	 * Abre el submenú de magia, reconstruyendo los botones según el estado actual
-	 * del personaje (PM disponibles, habilidades ya activas, etc.).
+	 * Abre el submenú de magia, reconstruyendo los botones según el estado actual.
 	 */
 	@FXML
 	private void handleMagia() {
-		if (combateTerminado) {
+		if (combateTerminado) { //no abrir si combate ya terminó
 			return;
 		}
 		construirBotonesHabilidades(sesion.getHeroe(), contenedorHabilidades);
-		menuBatalla.setVisible(false);
-		menuBatalla.setManaged(false);
-		menuMagia.setVisible(true);
-		menuMagia.setManaged(true);
+		abrirSubmenu(menuMagia);
 	}
 
 	/**
@@ -1185,17 +998,35 @@ public class MazmorraController implements Initializable {
 	 */
 	@FXML
 	private void handleVolverMenu() {
-		menuMagia.setVisible(false);
-		menuMagia.setManaged(false);
+		cerrarSubmenu(menuMagia);
+	}
+
+	/**
+	 * Oculta el submenú indicado y vuelve a mostrar el menú principal de batalla.
+	 * Centraliza el comportamiento común de los tres handlers "volver".
+	 */
+	private void cerrarSubmenu(VBox submenu) {
+		submenu.setVisible(false);
+		submenu.setManaged(false);
 		menuBatalla.setVisible(true);
 		menuBatalla.setManaged(true);
+	}
+
+	/**
+	 * Oculta el menú principal de batalla y muestra el submenú indicado.
+	 */
+	private void abrirSubmenu(VBox submenu) {
+		menuBatalla.setVisible(false);
+		menuBatalla.setManaged(false);
+		submenu.setVisible(true);
+		submenu.setManaged(true);
 	}
 
 	/**
 	 * Construye dinámicamente los botones de habilidades.
 	 */
 	private void construirBotonesHabilidades(Heroe heroe, VBox contenedor) {
-		contenedor.getChildren().clear();
+		contenedor.getChildren().clear(); //eliminamos botones para reconstruirlos
 
 		for (Habilidad habilidad : heroe.getHabilidades()) {
 			Button btn = new Button();
@@ -1206,7 +1037,7 @@ public class MazmorraController implements Initializable {
 			VBox.setVgrow(btn, javafx.scene.layout.Priority.ALWAYS);
 			agregarSonidoHover(btn);
 
-			Tooltip tip = new Tooltip(habilidad.getDescripcion());
+			Tooltip tip = new Tooltip(habilidad.getDescripcion()); //texto que aparece en elemento
 			tip.setWrapText(true);
 			tip.setMaxWidth(210);
 			btn.setTooltip(tip);
@@ -1251,10 +1082,7 @@ public class MazmorraController implements Initializable {
 	 */
 	@FXML
 	private void handleVolverMenuObjetos() {
-		menuObjetos.setVisible(false);
-		menuObjetos.setManaged(false);
-		menuBatalla.setVisible(true);
-		menuBatalla.setManaged(true);
+		cerrarSubmenu(menuObjetos);
 	}
 
 	/**
@@ -1287,10 +1115,7 @@ public class MazmorraController implements Initializable {
 			return;
 		}
 		construirBotonesHabilidades(sesion.getHeroe(), contenedorHabilidadesGuerrero);
-		menuBatalla.setVisible(false);
-		menuBatalla.setManaged(false);
-		menuHabilidades.setVisible(true);
-		menuHabilidades.setManaged(true);
+		abrirSubmenu(menuHabilidades);
 	}
 
 	/**
@@ -1298,10 +1123,7 @@ public class MazmorraController implements Initializable {
 	 */
 	@FXML
 	private void handleVolverMenuHabilidades() {
-		menuHabilidades.setVisible(false);
-		menuHabilidades.setManaged(false);
-		menuBatalla.setVisible(true);
-		menuBatalla.setManaged(true);
+		cerrarSubmenu(menuHabilidades);
 	}
 
 	/**
@@ -1350,7 +1172,7 @@ public class MazmorraController implements Initializable {
 				+ " -fx-text-fill: " + color + ";");
 		barCarga.setStyle("-fx-accent: " + color + ";");
 
-		generarParticulasCarga();
+		Particulas.generar(panelParticulasCarga, 60, 42, 2);
 		barCarga.setProgress(0);
 		pantallaEntrefase.setVisible(true);
 		pantallaEntrefase.setManaged(true);
@@ -1358,10 +1180,10 @@ public class MazmorraController implements Initializable {
 		// animar la barra de progreso
 		Timeline tl = new Timeline(new KeyFrame(Duration.ZERO, new KeyValue(barCarga.progressProperty(), 0.0)),
 				new KeyFrame(Duration.seconds(2.5), new KeyValue(barCarga.progressProperty(), 1.0)));
-		tl.setOnFinished(ev -> {
+		tl.setOnFinished(ev -> { //al terminar animación oculta overlay e inicia combate
 			pantallaEntrefase.setVisible(false);
 			pantallaEntrefase.setManaged(false);
-			prepararCombate(); // arranca el combate de la nueva fase
+			prepararCombate(); 
 		});
 		tl.play();
 	}
@@ -1386,27 +1208,6 @@ public class MazmorraController implements Initializable {
 	}
 
 	/**
-	 * Genera partículas doradas animadas dentro del panel de carga.
-	 */
-	private void generarParticulasCarga() {
-		panelParticulasCarga.getChildren().clear();
-		Random rnd = new Random(42);
-		for (int i = 0; i < 60; i++) {
-			double x = rnd.nextDouble() * 900, y = rnd.nextDouble() * 650;
-			double r = 0.5 + rnd.nextDouble() * 1.2, o = 0.2 + rnd.nextDouble() * 0.5;
-			Circle c = new Circle(x, y, r, Color.web("#c8a84b", o));
-			FadeTransition ft = new FadeTransition(Duration.seconds(2 + rnd.nextDouble() * 3), c);
-			ft.setFromValue(o * 0.3);
-			ft.setToValue(o);
-			ft.setAutoReverse(true);
-			ft.setCycleCount(Animation.INDEFINITE);
-			ft.setDelay(Duration.seconds(rnd.nextDouble() * 4));
-			ft.play();
-			panelParticulasCarga.getChildren().add(c);
-		}
-	}
-
-	/**
 	 * Devuelve los PM actuales del héroe si es "Magico", o 0 si no usa magia.
 	 * Centraliza la comprobación para no duplicarla en cada método de guardado.
 	 */
@@ -1416,24 +1217,32 @@ public class MazmorraController implements Initializable {
 	}
 
 	/**
-	 * Garantiza que existe una fila para esta sesión. Si ya existe, no hace nada.
-	 * Si no, realiza un INSERT con el estado actual del combate (fase, HP/PM del
-	 * héroe, tipo y HP/PM del enemigo activo).
+	 * Crea una fila de partida en BD si la sesión todavía no tiene una asociada. 
 	 */
-	private void asegurarPartidaCreada() {
+	private void crearPartidaSiHaceFalta() throws SQLException {
 		if (sesion.getPartida() != null) {
 			return;
 		}
+		Heroe heroe = sesion.getHeroe();
+		Enemigo enemigo = motor.getEnemigo();
+		Partida p = new Partida(sesion.getJugador().getId(), heroe.getId(), sesion.getFaseActual(),
+				heroe.getPuntosGolpe());
+		p.setPmActual(pmActualHeroe());
+		p.setTipoEnemigo(enemigo.getTipo());
+		p.setHpEnemigo(enemigo.getPuntosGolpe());
+		p.setPmEnemigo(enemigo.getPm());
+		PartidaDAO.insertar(p);
+		sesion.setPartida(p);
+	}
+
+	/**
+	 * Garantiza que la partida exista en BD para poder anclarle un combate por FK,
+	 * y sincroniza el HP del personaje. No actualiza el resto del estado.
+	 */
+	private void asegurarPartidaCreada() {
 		try {
+			crearPartidaSiHaceFalta();
 			Heroe heroe = sesion.getHeroe();
-			Partida p = new Partida(sesion.getJugador().getId(), heroe.getId(), sesion.getFaseActual(),
-					heroe.getPuntosGolpe());
-			p.setPmActual(pmActualHeroe());
-			p.setTipoEnemigo(motor.getEnemigo().getTipo());
-			p.setHpEnemigo(motor.getEnemigo().getPuntosGolpe());
-			p.setPmEnemigo(motor.getEnemigo().getPm());
-			PartidaDAO.insertar(p);
-			sesion.setPartida(p);
 			PersonajeDAO.actualizarHp(heroe.getId(), heroe.getPuntosGolpe());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1441,36 +1250,25 @@ public class MazmorraController implements Initializable {
 	}
 
 	/**
-	 * Guarda la partida en BD tras una huida exitosa.
+	 * Guarda la partida en BD tras una huida exitosa: si no existe la crea, y en
+	 * cualquier caso vuelca el estado actual (fase, HP/PM del héroe y del enemigo,
+	 * estado EN_CURSO) para que el jugador pueda reanudar.
 	 */
 	private void guardarAlHuir() {
 		try {
+			crearPartidaSiHaceFalta();
 			Heroe heroe = sesion.getHeroe();
 			Enemigo enemigo = motor.getEnemigo();
-			if (sesion.getPartida() == null) {
-				// La partida todavía no existe en BD (el jugador huyó en fase 1 sin
-				// haber ganado ningún combate previo): crear la fila ahora.
-				Partida p = new Partida(sesion.getJugador().getId(), heroe.getId(), sesion.getFaseActual(),
-						heroe.getPuntosGolpe());
-				p.setPmActual(pmActualHeroe());
-				// Guardar el estado actual del enemigo (sigue vivo tras la huida)
-				p.setTipoEnemigo(enemigo.getTipo());
-				p.setHpEnemigo(enemigo.getPuntosGolpe());
-				p.setPmEnemigo(enemigo.getPm());
-				PartidaDAO.insertar(p);
-				sesion.setPartida(p);
-			} else {
-				Partida p = sesion.getPartida();
-				p.setFaseActual(sesion.getFaseActual());
-				p.setHpActual(heroe.getPuntosGolpe());
-				p.setPmActual(pmActualHeroe());
-				p.setEstado(modelo.Partida.Estado.EN_CURSO);
-				// Guardar el estado actual del enemigo (sigue vivo tras la huida)
-				p.setTipoEnemigo(enemigo.getTipo());
-				p.setHpEnemigo(enemigo.getPuntosGolpe());
-				p.setPmEnemigo(enemigo.getPm());
-				PartidaDAO.actualizar(p);
-			}
+			Partida p = sesion.getPartida();
+			p.setFaseActual(sesion.getFaseActual());
+			p.setHpActual(heroe.getPuntosGolpe());
+			p.setPmActual(pmActualHeroe());
+			p.setEstado(modelo.Partida.Estado.EN_CURSO);
+			// Guardar el estado actual del enemigo (sigue vivo tras la huida)
+			p.setTipoEnemigo(enemigo.getTipo());
+			p.setHpEnemigo(enemigo.getPuntosGolpe());
+			p.setPmEnemigo(enemigo.getPm());
+			PartidaDAO.actualizar(p);
 			PersonajeDAO.actualizarHp(heroe.getId(), heroe.getPuntosGolpe());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1590,18 +1388,16 @@ public class MazmorraController implements Initializable {
 	}
 
 	/**
-	 * Refresca la barra de PM del héroe mágico y el label numérico.
+	 * Refresca la barra de PM del héroe mágico y el label numérico. El color de la
+	 * barra lo define la clase CSS {@code barra-pm-pokemon}.
 	 */
 	private void actualizarBarraPm() {
 		if (!(sesion.getHeroe() instanceof Magico)) {
 			return;
 		}
 		Magico m = (Magico) sesion.getHeroe();
-		double pct = m.getPorcentajePm();
-		barraPoderMagico.setProgress(pct);
+		barraPoderMagico.setProgress(m.getPorcentajePm());
 		lblPmHeroe.setText(m.getPm() + " / " + m.getPmMax() + " PM");
-		String color = pct > 0.3 ? "#7c6fcd" : "#4a3d8f";
-		barraPoderMagico.setStyle("-fx-accent: " + color + ";");
 	}
 
 	/**
@@ -1623,12 +1419,15 @@ public class MazmorraController implements Initializable {
 	 * añade al inventario del héroe y muestra un mensaje en el log de combate.
 	 */
 	private void procesarDrop(Enemigo enemigo) {
+		
 		TipoDrop drop = enemigo.generarDrop();
+		
 		if (drop == null) {
 			return;
 		}
 
 		String msg;
+		
 		switch (drop) {
 		case POCION_VIDA:
 			pocionesRestantes++;
@@ -1648,32 +1447,7 @@ public class MazmorraController implements Initializable {
 
 		// Refrescar el botón de objetos para que refleje el nuevo stock
 		btnObjetos.setDisable(false);
-		actualizarEtiquetasPociones();
-	}
-
-	/**
-	 * Actualiza los textos de los botones de poción dentro del submenú de objetos
-	 * para reflejar el stock actual.
-	 */
-	private void actualizarEtiquetasPociones() {
-		if (btnPocionCuracion != null) {
-			if (pocionesRestantes > 0) {
-				btnPocionCuracion.setText("🧪 POCIÓN DE CURACIÓN  ×" + pocionesRestantes);
-				btnPocionCuracion.setDisable(false);
-			} else {
-				btnPocionCuracion.setText("🧪 POCIÓN DE CURACIÓN  (agotadas)");
-				btnPocionCuracion.setDisable(true);
-			}
-		}
-		if (btnPocionMagica != null) {
-			if (pocionesMagicasRestantes > 0) {
-				btnPocionMagica.setText("🔮 POCIÓN MÁGICA  ×" + pocionesMagicasRestantes);
-				btnPocionMagica.setDisable(false);
-			} else {
-				btnPocionMagica.setText("🔮 POCIÓN MÁGICA  (agotadas)");
-				btnPocionMagica.setDisable(true);
-			}
-		}
+		actualizarSubmenuObjetos();
 	}
 
 	/**
@@ -1700,16 +1474,12 @@ public class MazmorraController implements Initializable {
 
 	/**
 	 * Refresca la barra de PM del enemigo mágico (Saga, Dragón) y el label
-	 * numérico.
+	 * numérico. 
 	 */
 	private void actualizarBarraPmEnemigo() {
 		Enemigo enemigo = motor.getEnemigo();
-		double pct = enemigo.getPorcentajePm();
-		barraPmEnemigo.setProgress(pct);
+		barraPmEnemigo.setProgress(enemigo.getPorcentajePm());
 		lblPmEnemigo.setText(enemigo.getPm() + " / " + enemigo.getPmMax() + " PM");
-		// Oscurece el morado cuando los PM están bajos para dar señal visual
-		String color = pct > 0.3 ? "#7c6fcd" : "#4a3d8f";
-		barraPmEnemigo.setStyle("-fx-accent: " + color + ";");
 	}
 
 	/**
@@ -1765,30 +1535,26 @@ public class MazmorraController implements Initializable {
 	}
 
 	/**
-	 * Carga un clip en memoria para reproducirlo al pasar el cursor sobre los
-	 * botones de combate.
+	 * Carga un clip de audio desde el classpath.
 	 */
-	private void inicializarSonidoHover() {
+	private AudioClip cargarAudioClip(String ruta) {
 		try {
-			URL url = getClass().getResource("/recursos/audio/cursor.wav");
+			URL url = getClass().getResource(ruta);
 			if (url != null) {
-				sonidoHover = new AudioClip(url.toString());
+				return new AudioClip(url.toString());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return null;
 	}
 
 	/**
-	 * Carga el clip en memoria para reproducirlo al ejecutar ataques normales
-	 * (héroe y enemigo).
+	 * Carga una imagen o Sprites de personajes.
 	 */
-	private void inicializarSonidoAtaque() {
+	private void cargarSprite(ImageView destino, String ruta) {
 		try {
-			URL url = getClass().getResource("/recursos/audio/ataque.mp3");
-			if (url != null) {
-				sonidoAtaque = new AudioClip(url.toString());
-			}
+			destino.setImage(new Image(getClass().getResourceAsStream(ruta)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1836,7 +1602,6 @@ public class MazmorraController implements Initializable {
 	private void configurarSonidoBotones() {
 		agregarSonidoHover(btnAtacar);
 		agregarSonidoHover(btnObjetos);
-		agregarSonidoHover(btnHabilidad);
 		agregarSonidoHover(btnMagia);
 		agregarSonidoHover(btnHabilidades);
 		agregarSonidoHover(btnHuir);

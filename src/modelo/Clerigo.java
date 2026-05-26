@@ -15,7 +15,7 @@ public class Clerigo extends Magico {
 	// ── Constructor ───────────────────────────────────────────────────────────
 
 	public Clerigo(String nombre) {
-		super(nombre, /* hp */ 100, /* def */ 12, /* poder */ 14, /* pm */ 20);
+		super(nombre, /* hp */ 100, /* def */ 12, /* poder */ 18, /* pm */ 20);
 	}
 
 	// ── Getters/setters ─────────────────────────────────────────────────────

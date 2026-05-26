@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════════════════════════
-   Realm of Shadows – Estilos del Menú Principal
-   ═══════════════════════════════════════════════════════════════ */
-
 /* ── Variables de color (definidas en .root para reutilizar) ── */
 .root {
     -color-fondo:        #0a0a0f;
@@ -369,7 +365,7 @@
 }
 
 .barra-vida .bar {
-    -fx-background-color: #4caf50;
+    -fx-background-color: -fx-accent;
     -fx-background-radius: 2;
 }
 
@@ -391,9 +387,6 @@
     -fx-background-color: #0d0d16;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   Estilos estilo Pokémon para la pantalla de batalla
-   ═══════════════════════════════════════════════════════════════ */
 
 /* ── Escena de batalla (fondo con gradiente semitransparente) ── */
 .escena-batalla {
@@ -461,7 +454,7 @@
 }
 
 .barra-vida-pokemon .bar {
-    -fx-background-color: #4caf50;
+    -fx-background-color: -fx-accent;
     -fx-background-radius: 5;
     -fx-padding: 0;
 }

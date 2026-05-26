@@ -1,11 +1,11 @@
 package controlador;
 
+import controlador.util.Particulas;
 import dao.JugadorDAO;
 import dao.PartidaDAO;
 import dao.PersonajeDAO;
 import modelo.*;
 
-import javafx.animation.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -13,14 +13,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.List;
-import java.util.Random;
 import java.util.ResourceBundle;
 
 public class CargarPartidaController implements Initializable {
@@ -36,7 +32,7 @@ public class CargarPartidaController implements Initializable {
 
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
-		generarParticulas();
+		Particulas.generar(panelParticulas, 60, 11, 2);
 		cargarPartidas();
 	}
 
@@ -143,24 +139,4 @@ public class CargarPartidaController implements Initializable {
 		}
 	}
 
-	/**
-	 * Genera partículas doradas en posiciones aleatorias del fondo y les aplica una
-	 * animación de parpadeo.
-	 */
-	private void generarParticulas() {
-		Random rnd = new Random(11);
-		for (int i = 0; i < 60; i++) {
-			double x = rnd.nextDouble() * 900, y = rnd.nextDouble() * 650;
-			double r = 0.5 + rnd.nextDouble() * 1.2, o = 0.2 + rnd.nextDouble() * 0.5;
-			Circle c = new Circle(x, y, r, Color.web("#c8a84b", o));
-			FadeTransition ft = new FadeTransition(Duration.seconds(2 + rnd.nextDouble() * 3), c);
-			ft.setFromValue(o * 0.3);
-			ft.setToValue(o);
-			ft.setAutoReverse(true);
-			ft.setCycleCount(Animation.INDEFINITE);
-			ft.setDelay(Duration.seconds(rnd.nextDouble() * 4));
-			ft.play();
-			panelParticulas.getChildren().add(c);
-		}
-	}
 }

@@ -1,5 +1,7 @@
 package controlador;
 
+import controlador.util.Particulas;
+
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -9,8 +11,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.media.AudioClip;
@@ -18,7 +18,6 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
 import java.net.URL;
-import java.util.Random;
 import java.util.ResourceBundle;
 
 public class MenuController implements Initializable {
@@ -40,7 +39,7 @@ public class MenuController implements Initializable {
 
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
-		generarParticulas(); // Crear estrellas doradas en el fondo
+		Particulas.generar(panelParticulas, 80, 42, 1.5); // Crear estrellas doradas en el fondo
 		animarEntrada(); // Fade-in + slide-up del panel de botones
 		iniciarMusica(); // Reproducir Menu.mp3 en bucle
 		inicializarSonidoHover(); // Cargar cursor.wav en memoria
@@ -110,28 +109,6 @@ public class MenuController implements Initializable {
 	private void handleSalir() {
 		detenerMusica();
 		Platform.exit();
-	}
-
-	private void generarParticulas() {
-		Random rnd = new Random(42);
-		for (int i = 0; i < 80; i++) {
-			double x = rnd.nextDouble() * 900; // posición X aleatoria
-			double y = rnd.nextDouble() * 650; // posición Y aleatoria
-			double radio = 0.5 + rnd.nextDouble() * 1.2; // radio entre 0.5 y 1.7 px
-			double opacidad = 0.2 + rnd.nextDouble() * 0.5; // opacidad base entre 0.2 y 0.7
-			Circle estrella = new Circle(x, y, radio, Color.web("#c8a84b", opacidad));
-
-			// FadeTransition: alterna entre opacidad baja y opacidad base de forma continua
-			FadeTransition ft = new FadeTransition(Duration.seconds(1.5 + rnd.nextDouble() * 3), estrella);
-			ft.setFromValue(opacidad * 0.3); // parpadeo mínimo
-			ft.setToValue(opacidad); // parpadeo máximo
-			ft.setAutoReverse(true); // va y vuelve
-			ft.setCycleCount(Animation.INDEFINITE); // sin fin
-			ft.setDelay(Duration.seconds(rnd.nextDouble() * 4)); // desfase para no sincronizar
-			ft.play();
-
-			panelParticulas.getChildren().add(estrella);
-		}
 	}
 
 	/**

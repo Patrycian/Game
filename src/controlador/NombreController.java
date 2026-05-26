@@ -1,5 +1,7 @@
 package controlador;
 
+import controlador.util.Particulas;
+
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -12,13 +14,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.net.URL;
-import java.util.Random;
 import java.util.ResourceBundle;
 
 public class NombreController implements Initializable {
@@ -53,7 +52,7 @@ public class NombreController implements Initializable {
 
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
-		generarParticulas();
+		Particulas.generar(panelParticulas, 80, 99, 1.5);
 		animarEntrada();
 		// Al pulsar Enter en el TextField, intenta continuar sin abrir teclado
 		txtNombre.setOnAction(e -> handleContinuar());
@@ -279,31 +278,6 @@ public class NombreController implements Initializable {
 		tt.setAutoReverse(true);
 		tt.setOnFinished(e -> txtNombre.setTranslateX(0)); // restablecer posición exacta
 		tt.play();
-	}
-
-	/**
-	 * Genera 80 partículas doradas en posiciones aleatorias del fondo y les aplica
-	 * una animación de parpadeo continuo.
-	 */
-	private void generarParticulas() {
-		Random rnd = new Random(99);
-		for (int i = 0; i < 80; i++) {
-			double x = rnd.nextDouble() * 900;
-			double y = rnd.nextDouble() * 650;
-			double radio = 0.5 + rnd.nextDouble() * 1.2;
-			double opacidad = 0.2 + rnd.nextDouble() * 0.5;
-			Circle estrella = new Circle(x, y, radio, Color.web("#c8a84b", opacidad));
-
-			FadeTransition ft = new FadeTransition(Duration.seconds(1.5 + rnd.nextDouble() * 3), estrella);
-			ft.setFromValue(opacidad * 0.3); // brillo mínimo
-			ft.setToValue(opacidad); // brillo máximo (opacidad base)
-			ft.setAutoReverse(true);
-			ft.setCycleCount(Animation.INDEFINITE);
-			ft.setDelay(Duration.seconds(rnd.nextDouble() * 4)); // desfase para no sincronizar
-			ft.play();
-
-			panelParticulas.getChildren().add(estrella);
-		}
 	}
 
 	/**

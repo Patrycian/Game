@@ -9,8 +9,9 @@ import java.util.Map;
 import java.util.Random;
 
 public class MotorCombate {
-
-	public enum ResultadoCombate {
+	
+    /**Clase especial de Java que representa unas constantes */
+	public enum ResultadoCombate {  
 		EN_CURSO, VICTORIA, DERROTA
 	}
 
@@ -142,26 +143,10 @@ public class MotorCombate {
 
 	/**
 	 * Crea un enemigo del tipo concreto indicado, usando los datos del catálogo de
-	 * BD si están disponibles. Se usa al reanudar una partida guardada para
-	 * restaurar el mismo tipo de enemigo que estaba activo cuando el jugador huyó.
-	 *
-	 * Si el tipo no coincide con ningún enemigo conocido, se genera un Goblin como
-	 * fallback seguro.
+	 * BD si están disponibles. 
 	 */
 	public static Enemigo generarEnemigoDeTipo(String tipo) {
-		Map<String, EnemigoDatos> catalogo = EnemigoDAO.getCatalogo();
-		switch (tipo.toUpperCase()) {
-		case "DRAGON":
-			return crearEnemigoDesdeCatalogo("DRAGON", catalogo);
-		case "OGRO":
-			return crearEnemigoDesdeCatalogo("OGRO", catalogo);
-		case "GOBLIN":
-			return crearEnemigoDesdeCatalogo("GOBLIN", catalogo);
-		case "SAGA":
-			return crearEnemigoDesdeCatalogo("SAGA", catalogo);
-		default:
-			return crearEnemigoDesdeCatalogo("GOBLIN", catalogo); // fallback seguro
-		}
+		return crearEnemigoDesdeCatalogo(tipo.toUpperCase(), EnemigoDAO.getCatalogo());
 	}
 
 	/**
@@ -194,7 +179,7 @@ public class MotorCombate {
 			return crearEnemigoDesdeCatalogo("DRAGON", catalogo);
 		}
 
-		// Fases 1-3: enemigo al azar
+		// Resto fases enemigo random
 		Enemigo[] pool = { crearEnemigoDesdeCatalogo("OGRO", catalogo), crearEnemigoDesdeCatalogo("GOBLIN", catalogo),
 				crearEnemigoDesdeCatalogo("SAGA", catalogo) };
 		return pool[new Random().nextInt(pool.length)];

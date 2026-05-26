@@ -16,12 +16,11 @@ public class Main extends Application {
 		// Creamos escena
 		Scene scene = new Scene(root, 900, 650); // resolución fija
 		stage.setTitle("Lost Realm");
-		stage.setResizable(false);// ventana no redimensionable ¿sí/no?
+		stage.setResizable(false);// ventana no redimensionable ¿sí o no?
 		stage.setScene(scene); //Asigna la escena creada a la ventana
 		stage.show(); //Muestra ventana al usuario
 	}
 
-    //lanza el programa
 	public static void main(String[] args) {
 		launch(args);
 	}
